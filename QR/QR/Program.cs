@@ -25,13 +25,19 @@ namespace QR
         static bool isNumeric(byte[] bytes) =>
                     bytes.Where(b => (b > 57 || b < 48)).Count() == 0;
         static bool isAlphanumeric(byte[] bytes) =>
-            bytes.Where(b => (b > 57 || b < 48)).Count() == 0 ||
-            bytes.Where(b => (b > 57) || (b < 48)).Count() == 0 ||
-            bytes.Where(b => (b < 65) || (b > 90)).Count() == 0 ||
-            bytes.Where(b => (b < 36) || (b > 37)).Count() == 0 ||
-            bytes.Where(b => (b < 42) || (b > 43)).Count() == 0 ||
-            bytes.Where(b => (b < 43) && (b > 47)).Count() == 0 ||
-            bytes.Where(b => (b != 58)).Count() == 0 ||
-            bytes.Where(b => (b != 32)).Count() == 0;
+            bytes.Count(b => b switch
+            {
+                byte x when
+                    b <= 57 && b >= 48 ||
+                    b >= 36 && b <= 37 ||
+                    b >= 42 && b <= 43 ||
+                    b >= 45 && b <= 47 ||
+                    b >= 65 && b <= 90 ||
+                    b == 58 ||
+                    b == 32
+                    => false,
+                _ => true
+            }) == 0;
+
     }
 }
