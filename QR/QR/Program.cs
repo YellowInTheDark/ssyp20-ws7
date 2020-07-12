@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 
 namespace QR
@@ -21,39 +22,16 @@ namespace QR
 
         }
 
-        static bool isNumeric(byte[] bytes)
-        {
-            foreach (var item in bytes)
-            {
-                // 48 - 57
-                if (item > 57 || item < 48)
-                    return false;
-            }
-            return true;
-        }
-        static bool isAlphanumeric(byte[] bytes)
-        {
-            foreach (var item in bytes)
-            {
-                bool isInBounds = false;
-                // 48 - 57; 65 - 90
-                if ((item <= 57) && (item >= 48))
-                    isInBounds = true;
-                else if ((item >= 65) && (item <= 90))
-                    isInBounds = true;
-                else if ((item >= 36) && (item <= 37))
-                    isInBounds = true;
-                else if ((item >= 42) && (item <= 43))
-                    isInBounds = true;
-                else if ((item >= 45) && (item <= 47))
-                    isInBounds = true;
-                else if (item == 58)
-                    isInBounds = true;
-                else if (item == 32)
-                    isInBounds = true;
-                if (!isInBounds) return false;
-            }
-            return true;
-        }
+        static bool isNumeric(byte[] bytes) =>
+                    bytes.Where(b => (b > 57 || b < 48)).Count() == 0;
+        static bool isAlphanumeric(byte[] bytes) =>
+            bytes.Where(b => (b > 57 || b < 48)).Count() == 0 ||
+            bytes.Where(b => (b > 57) || (b < 48)).Count() == 0 ||
+            bytes.Where(b => (b < 65) || (b > 90)).Count() == 0 ||
+            bytes.Where(b => (b < 36) || (b > 37)).Count() == 0 ||
+            bytes.Where(b => (b < 42) || (b > 43)).Count() == 0 ||
+            bytes.Where(b => (b < 43) && (b > 47)).Count() == 0 ||
+            bytes.Where(b => (b != 58)).Count() == 0 ||
+            bytes.Where(b => (b != 32)).Count() == 0;
     }
 }
