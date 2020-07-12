@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -8,23 +9,55 @@ namespace QR
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("Write string to encode");
             string input = Console.ReadLine();
+            Console.WriteLine("Choose error correction level: \n 1 - L(7%) | 2 - M(15%) | 3 - Q(25%) | 4 - H(30%)");
+            int correctionLevel = int.Parse(Console.ReadLine());
+            int C = 10;
+            int M = 4;
             byte[] bytes = UTF8Encoding.UTF8.GetBytes(input);
 
-            foreach (var item in bytes)
-            {
-                // Вывод байтового кода каждого символа
-                Console.WriteLine(item);
-            }
-            // Вывод принадлежности к разрядам
+            int[,] maxByteArr = new int[4, 40];
+            maxByteArr = ReadCorrection();
             
-            // Проверка для кандзи
-            //bytes = new byte[2];
-            //bytes[0] = 159;
-            //bytes[1] = 126;
-            Console.WriteLine(isNumeric(bytes));
-            Console.WriteLine(isAlphanumeric(bytes));
-            Console.WriteLine(isKanji(bytes));
+
+
+            // Не уверен с порядком, если мы можем закодировать в канзи и в нумерик, к примеру, то что лучше выбрать? 
+            if (isNumeric(bytes))
+            {
+                var bits = bytes.Length / 3 * 10; // 10 бит на каждые 3 числа
+                bits += bytes.Length % 3 == 2 ? 7 : 4;
+                Console.WriteLine($"{bits} bits");
+                for (int i = 0; i < maxByteArr.GetLength(0); i++)
+                {
+                    if(i+1 <= 10)
+                        C = 10;
+                    else if (i + 1 <= 26)
+                        C = 12;
+                    else if (i + 1 <= 47)
+                        C = 14;
+
+                    if (maxByteArr[correctionLevel - 1, i] - C - M >= bits)
+                    {
+                        Console.WriteLine($"Version {i + 1}");
+                        break;
+                    }
+                }
+            }
+            else if (isAlphanumeric(bytes))
+            {
+                //...
+            }
+            else if (isKanji(bytes))
+            {
+                //...
+            }
+
+            //foreach (var item in bytes)
+            //{
+            //    // Вывод байтового кода каждого символа
+            //    Console.Write($"{item} ");
+            //}
 
         }
 
@@ -60,6 +93,25 @@ namespace QR
                     return false;
             }
             return true;
+        }
+        
+        static int[,] ReadCorrection()
+        {
+            String file = File.ReadAllText(@"CorrectionLevel.txt");
+
+            int i = 0, j = 0;
+            int[,] result = new int[4, 40];
+            foreach (var row in file.Split('\n'))
+            {
+                j = 0;
+                foreach (var col in row.Split(' '))
+                {
+                    result[i, j] = int.Parse(col.Trim());
+                    j++;
+                }
+                i++;
+            }
+            return result;
         }
     }
 }
