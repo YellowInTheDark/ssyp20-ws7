@@ -28,7 +28,7 @@ namespace QR
                 var bits = bytes.Length / 3 * 10; // 10 бит на каждые 3 числа
                 bits += bytes.Length % 3 == 2 ? 7 : 4;
                 Console.WriteLine($"{bits} bits");
-                for (int i = 0; i < maxByteArr.GetLength(0); i++)
+                for (int i = 0; i < 40; i++)
                 {
                     if(i+1 <= 10)
                         C = 10;
