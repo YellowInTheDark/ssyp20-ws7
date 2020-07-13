@@ -1,0 +1,55 @@
+        public static string text;
+
+        static void Main(string[] args)
+        {
+            Console.Write("Enter text: ");
+            text = Console.ReadLine();
+
+            Console.WriteLine(WorldNumber(text));
+
+        }
+
+        public static string WorldNumber(string a)
+        {
+            int saver = 0;
+            string[] b = new string[text.Length];
+            for (int c = 0; c < text.Length; c++)
+            {
+                if (saver < text.Length)
+                {
+                    b[c] += text[saver].ToString();
+                }
+                else
+                    break;
+      
+                if (saver + 1 < text.Length)
+                {
+                    b[c] += text[saver + 1].ToString();
+                    saver += 2;
+                }
+                else
+                    break;
+
+                
+            }
+
+            byte[][] bytes = new byte[b.Length][];
+            string save = "";
+            for (int c = 0; c < b.Length; c++)
+            {
+                if (b[c] != null)
+                {
+                    bytes[c] = System.Text.Encoding.UTF8.GetBytes(b[c]);
+
+                    for(int c1 = 0; c1 < bytes[c].Length; c1++)
+                    {
+                        save += Convert.ToString(bytes[c][c1],2);
+                    }
+                    
+                }
+            }
+
+
+            return save;
+
+        }
