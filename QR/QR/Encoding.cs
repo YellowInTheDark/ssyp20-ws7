@@ -1,28 +1,13 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace QR
 {
-    class Program
+    class Encoding
     {
-        public static void Main()
-        {
-            Console.WriteLine("Write string to encode");
-            string input = Console.ReadLine();
-            Console.WriteLine("Choose error correction level: \n 1 - L(7%) | 2 - M(15%) | 3 - Q(25%) | 4 - H(30%)");
-            if (!int.TryParse(Console.ReadLine(), out int correctionLevel) || correctionLevel < 1 || correctionLevel > 4)
-            {
-                throw new Exception("Correction level must be number from 1 to 4");
-            }
-            byte[] bytes = UTF8Encoding.UTF8.GetBytes(input);
-
-            int version = GetVersion(bytes, correctionLevel);
-            if (IsNumeric(bytes)) EncodeNumeric(input, version);
-        }
-        
-        public static void EncodeNumeric(string input, int version)
+        public static string EncodeNumeric(string input, int version)
         {
             string encodedLine = string.Empty;
             for (int i = 0; i < input.Length / 3; i++)
@@ -35,7 +20,7 @@ namespace QR
                 int tmp = int.Parse(input.Substring(3 * (input.Length / 3), 2));
                 encodedLine += $"{Convert.ToString(tmp, 2).PadLeft(7, '0')} ";
             }
-            if (input.Length % 3 == 1) 
+            if (input.Length % 3 == 1)
             {
                 int tmp = int.Parse(input.Substring(3 * (input.Length / 3), 1));
                 encodedLine += $"{Convert.ToString(tmp, 2).PadLeft(4, '0')} ";
@@ -56,13 +41,103 @@ namespace QR
 
             encodedLine = encodedLine.Insert(0, "0001 ");
             encodedLine.TrimEnd();
-            Console.WriteLine(encodedLine);
+            return encodedLine;
+        }
+
+        public static string EncodeAlphaNumeric(string input, int version)
+        {
+            string encodedLine = string.Empty;
+            for (int i = 0; i < input.Length-1; i+=2)
+            {
+                var fElement = AlphanumericDictionary(input[i]);
+                var sElement = AlphanumericDictionary(input[i+1]);
+                var sum = fElement * 45 + sElement;
+                encodedLine += $"{Convert.ToString(sum, 2).PadLeft(11, '0')} ";
+            }
+            if (input.Length % 2 == 1)
+            {
+                int tmp = AlphanumericDictionary(input[input.Length-1]);
+                encodedLine += $"{Convert.ToString(tmp, 2).PadLeft(6, '0')} ";
+            }
+
+            switch (version)
+            {
+                case int _ when version <= 9:
+                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(input.Length, 2).PadLeft(9, '0')} ");
+                    break;
+                case int _ when version <= 26:
+                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(input.Length, 2).PadLeft(11, '0')} ");
+                    break;
+                case int _ when version <= 40:
+                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(input.Length, 2).PadLeft(13, '0')} ");
+                    break;
+            }
+
+            encodedLine = encodedLine.Insert(0, "0010 ");
+            encodedLine.TrimEnd();
+            return encodedLine;
+        }
+
+        static int AlphanumericDictionary(char keyValue)
+        {
+            Dictionary<char, int> AD = new Dictionary<char, int>
+            {
+
+                {'0', 0 },
+                {'1', 1 },
+                {'2', 2 },
+                {'3', 3 },
+                {'4', 4 },
+                {'5', 5 },
+                {'6', 6 },
+                {'7', 7 },
+                {'8', 8 },
+                {'9', 9 },
+                {'A', 10 },
+                {'B', 11 },
+                {'C', 12 },
+                {'D', 13 },
+                {'E', 14 },
+                {'F', 15 },
+                {'G', 16 },
+                {'H', 17 },
+                {'I', 18 },
+                {'J', 19 },
+                {'K', 20 },
+                {'L', 21 },
+                {'M', 22 },
+                {'N', 23 },
+                {'O', 24 },
+                {'P', 25 },
+                {'Q', 26 },
+                {'R', 27 },
+                {'S', 28 },
+                {'T', 29 },
+                {'U', 30 },
+                {'V', 31 },
+                {'W', 32 },
+                {'X', 33 },
+                {'Y', 34 },
+                {'Z', 35 },
+                {' ', 36 },
+                {'$', 37 },
+                {'%', 38 },
+                {'*', 39 },
+                {'+', 40 },
+                {'-', 41 },
+                {'.', 42 },
+                {'/', 43 },
+                {':', 44 },
+            };
+            return AD[keyValue];
+
         }
 
         public static int GetVersion(byte[] bytes, int correctionLevel)
         {
+            MainClass main = new MainClass();
             int[,] maxByteArr = new int[4, 40];
-            maxByteArr = ReadCorrection();
+            maxByteArr = main.ReadCorrection();
             const int M = 4;
             if (IsNumeric(bytes))
             {
@@ -138,9 +213,9 @@ namespace QR
                 return version;
             }
         }
-        static bool IsNumeric(byte[] bytes) =>
+        public static bool IsNumeric(byte[] bytes) =>
                 bytes.Count(b => (b > 57 || b < 48)) == 0;
-        static bool IsAlphanumeric(byte[] bytes) =>
+        public static bool IsAlphanumeric(byte[] bytes) =>
             bytes.Count(b => b switch
             {
                 byte x when
@@ -155,7 +230,7 @@ namespace QR
                 _ => true
             }) == 0;
 
-        static bool IsKanji(byte[] bytes)
+        public static bool IsKanji(byte[] bytes)
         {
             for (int i = 0; i < bytes.Length; i += 2)
             {
@@ -164,31 +239,13 @@ namespace QR
 
                     (bytes[i] >= 224 && bytes[i] <= 234) && (bytes[i + 1] >= 64 && bytes[i + 1] <= 126) ||
                     (bytes[i] >= 224 && bytes[i] <= 234) && (bytes[i + 1] >= 128 && bytes[i + 1] <= 252) ||
-                    
+
                     (bytes[i] >= 234 && bytes[i] <= 235) && (bytes[i + 1] >= 64 && bytes[i + 1] <= 126) ||
                     (bytes[i] >= 224 && bytes[i] <= 234) && (bytes[i + 1] >= 128 && bytes[i + 1] <= 191))
                     return false;
             }
             return true;
         }
-        
-        static int[,] ReadCorrection()
-        {
-            String file = File.ReadAllText(@"CorrectionLevel.txt");
 
-            int i = 0, j = 0;
-            int[,] result = new int[4, 40];
-            foreach (var row in file.Split('\n'))
-            {
-                j = 0;
-                foreach (var col in row.Split(' '))
-                {
-                    result[i, j] = int.Parse(col.Trim());
-                    j++;
-                }
-                i++;
-            }
-            return result;
-        }
     }
 }
