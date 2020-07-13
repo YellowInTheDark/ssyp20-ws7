@@ -16,13 +16,18 @@ namespace QR
             {
                 throw new Exception("Correction level must be number from 1 to 4");
             }
+            //input = "ሐ`"; // СТРОКА ДЛЯ ТЕСТА
             byte[] bytes = UTF8Encoding.UTF8.GetBytes(input);
-
+            foreach (var item in bytes)
+            {
+                Console.Write($"{item} ");
+            }
             int version = Encoding.GetVersion(bytes, correctionLevel);
             if (Encoding.IsNumeric(bytes)) Console.WriteLine(Encoding.EncodeNumeric(input, version));
             else if (Encoding.IsAlphanumeric(bytes)) Console.WriteLine(Encoding.EncodeAlphaNumeric(input, version));
-            else if (Encoding.IsKanji(bytes)) return;
+            else if (Encoding.IsKanji(bytes)) Console.WriteLine(Encoding.EncodeKanji(input, version));
             else Console.WriteLine(Encoding.EncodeByte(input, version));
+
         }
 
         public int[,] ReadCorrection()

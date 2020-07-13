@@ -104,33 +104,46 @@ namespace QR
         public static string EncodeKanji(string input, int version)
         {
             byte[] bytes = UTF8Encoding.UTF8.GetBytes(input);
-            string encodedLine = string.Empty;
-            for (int i = 0; i < input.Length; i++)
-            {
-                //encodedLine += $"{Convert.ToString(sum, 2).PadLeft(11, '0')} ";
-                return "too hard";
 
-            }
-            if (input.Length % 2 == 1)
+            string encodedLine = string.Empty;
+            for (int i = 0; i < bytes.Length; i += 2)
             {
-                int tmp = AlphanumericDictionary(input[input.Length - 1]);
-                encodedLine += $"{Convert.ToString(tmp, 2).PadLeft(6, '0')} ";
+                ushort group = BitConverter.ToUInt16(new byte[2] { (byte)bytes[i], (byte)bytes[i + 1] }, 0);
+
+                if (group >= 33088 || group <= 40956)
+                {
+                    group -= 0x8140;
+                    byte HighByte = (byte)(group >> 8);
+                    ushort result = (ushort)(HighByte * 0xC0);
+                    byte LowByte = (byte)(group & 0xFF);
+                    result += LowByte;
+                    encodedLine += $"{Convert.ToString(result, 2).PadLeft(13, '0')} ";
+                }
+                else if (group >= 57408 || group <= 60351)
+                {
+                    group -= 0xC140;
+                    byte HighByte = (byte)(group >> 8);
+                    ushort result = (ushort)(HighByte * 0xC0);
+                    byte LowByte = (byte)(group & 0xFF);
+                    result += LowByte;
+                    encodedLine += $"{Convert.ToString(result, 2).PadLeft(13, '0')} ";
+                }
             }
 
             switch (version)
             {
                 case int _ when version <= 9:
-                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(input.Length, 2).PadLeft(9, '0')} ");
+                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(input.Length, 2).PadLeft(8, '0')} ");
                     break;
                 case int _ when version <= 26:
-                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(input.Length, 2).PadLeft(11, '0')} ");
+                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(input.Length, 2).PadLeft(10, '0')} ");
                     break;
                 case int _ when version <= 40:
-                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(input.Length, 2).PadLeft(13, '0')} ");
+                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(input.Length, 2).PadLeft(12, '0')} ");
                     break;
             }
 
-            encodedLine = encodedLine.Insert(0, "0010 ");
+            encodedLine = encodedLine.Insert(0, "1000 ");
             encodedLine.TrimEnd();
             return encodedLine;
         }
@@ -200,7 +213,7 @@ namespace QR
             {
                 var bits = bytes.Length / 3 * 10; // 10 бит на каждые 3 числа
                 bits += bytes.Length % 3 == 2 ? 7 : 4;
-                Console.WriteLine($"{bits} bits");
+                Console.WriteLine($"\n{bits} bits");
                 int version =
                 Enumerable.Range(1, 40).FirstOrDefault(i =>
                    maxByteArr[correctionLevel - 1, i - 1] - M -
@@ -211,7 +224,7 @@ namespace QR
                        int _ when i <= 40 => 14,
                        _ => throw new Exception("Error")
                    } >= bits);
-                if (version == 0) throw new Exception("Your text is too big. Try to choose smaller level correction");
+                if (version == 0) throw new Exception("Your text is too big. Try to choose smaller correction level");
                 Console.WriteLine($"Numeric | Version {version}");
                 return version;
             }
@@ -219,7 +232,7 @@ namespace QR
             {
                 var bits = bytes.Length / 2 * 11;
                 bits += (bytes.Length % 2) * 6;
-                Console.WriteLine($"{bits} bits");
+                Console.WriteLine($"\n{bits} bits");
                 int version =
                 Enumerable.Range(1, 40).FirstOrDefault(i =>
                    maxByteArr[correctionLevel - 1, i - 1] - M -
@@ -230,14 +243,14 @@ namespace QR
                        int _ when i <= 40 => 13,
                        _ => throw new Exception("Error")
                    } >= bits);
-                if (version == 0) throw new Exception("Your text is too big. Try to choose smaller level correction");
+                if (version == 0) throw new Exception("Your text is too big. Try to choose smaller correction level");
                 Console.WriteLine($"AlphaNumeric | Version {version}");
                 return version;
             }
             else if (IsKanji(bytes))
             {
                 var bits = bytes.Length * 13;
-                Console.WriteLine($"{bits} bits");
+                Console.WriteLine($"\n{bits} bits");
                 int version =
                 Enumerable.Range(1, 40).FirstOrDefault(i =>
                    maxByteArr[correctionLevel - 1, i - 1] - M -
@@ -248,14 +261,14 @@ namespace QR
                        int _ when i <= 40 => 12,
                        _ => throw new Exception("Error")
                    } >= bits);
-                if (version == 0) throw new Exception("Your text is too big. Try to choose smaller level correction");
+                if (version == 0) throw new Exception("Your text is too big. Try to choose smaller correction level");
                 Console.WriteLine($"Kanji | Version {version}");
                 return version;
             }
             else
             {
                 var bits = bytes.Length * 8;
-                Console.WriteLine($"{bits} bits");
+                Console.WriteLine($"\n{bits} bits");
                 int version =
                 Enumerable.Range(1, 40).FirstOrDefault(i =>
                    maxByteArr[correctionLevel - 1, i - 1] - M -
@@ -265,7 +278,7 @@ namespace QR
                        int _ when i <= 40 => 16,
                        _ => throw new Exception("Error")
                    } >= bits);
-                if (version == 0) throw new Exception("Your text is too big. Try to choose smaller level correction");
+                if (version == 0) throw new Exception("Your text is too big. Try to choose smaller correction level");
                 Console.WriteLine($"Byte | Version {version}");
                 return version;
             }
@@ -289,20 +302,23 @@ namespace QR
 
         public static bool IsKanji(byte[] bytes)
         {
-            for (int i = 0; i < bytes.Length; i += 2)
-            {
-                if (bytes[i] >= 129 && bytes[i] <= 159 && bytes[i + 1] >= 64 && bytes[i + 1] <= 126 ||
-                    bytes[i] >= 129 && bytes[i] <= 159 && bytes[i + 1] >= 128 && bytes[i + 1] <= 252 ||
+            if (bytes.Length % 2 == 0)
+                for (int i = 0; i < bytes.Length; i += 2)
+                {
+                    if (bytes[i] >= 129 && bytes[i] <= 159 && bytes[i + 1] >= 64 && bytes[i + 1] <= 126 ||
+                        bytes[i] >= 129 && bytes[i] <= 159 && bytes[i + 1] >= 128 && bytes[i + 1] <= 252 ||
 
-                    bytes[i] >= 224 && bytes[i] <= 234 && bytes[i + 1] >= 64 && bytes[i + 1] <= 126 ||
-                    bytes[i] >= 224 && bytes[i] <= 234 && bytes[i + 1] >= 128 && bytes[i + 1] <= 252 ||
+                        bytes[i] >= 224 && bytes[i] <= 234 && bytes[i + 1] >= 64 && bytes[i + 1] <= 126 ||
+                        bytes[i] >= 224 && bytes[i] <= 234 && bytes[i + 1] >= 128 && bytes[i + 1] <= 252 ||
 
-                    bytes[i] >= 234 && bytes[i] <= 235 && bytes[i + 1] >= 64 && bytes[i + 1] <= 126 ||
-                    bytes[i] >= 224 && bytes[i] <= 234 && bytes[i + 1] >= 128 && bytes[i + 1] <= 191)
-                { }
-                else 
-                    return false;
-            }
+                        bytes[i] >= 234 && bytes[i] <= 235 && bytes[i + 1] >= 64 && bytes[i + 1] <= 126 ||
+                        bytes[i] >= 224 && bytes[i] <= 234 && bytes[i + 1] >= 128 && bytes[i + 1] <= 191)
+                    { }
+                    else
+                        return false;
+                }
+            else return false;
+
             return true;
         }
 
