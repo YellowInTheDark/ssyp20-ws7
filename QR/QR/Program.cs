@@ -7,80 +7,102 @@ namespace QR
 {
     class Program
     {
-        static void Main(string[] args)
+        public static void Main()
         {
             Console.WriteLine("Write string to encode");
             string input = Console.ReadLine();
             Console.WriteLine("Choose error correction level: \n 1 - L(7%) | 2 - M(15%) | 3 - Q(25%) | 4 - H(30%)");
-            int correctionLevel = int.Parse(Console.ReadLine());
-            int C = 10;
-            int M = 4;
+            if (!int.TryParse(Console.ReadLine(), out int correctionLevel) || correctionLevel < 1 || correctionLevel > 4)
+            {
+                throw new Exception("Correction level must be number from 1 to 4");
+            }
             byte[] bytes = UTF8Encoding.UTF8.GetBytes(input);
 
+            int version = GetVersion(bytes, correctionLevel);
+        }
+        
+        public static int GetVersion(byte[] bytes, int correctionLevel)
+        {
             int[,] maxByteArr = new int[4, 40];
             maxByteArr = ReadCorrection();
-            
-
-
-            // Не уверен с порядком, если мы можем закодировать в канзи и в нумерик, к примеру, то что лучше выбрать? 
-            if (isNumeric(bytes))
+            const int M = 4;
+            if (IsNumeric(bytes))
             {
                 var bits = bytes.Length / 3 * 10; // 10 бит на каждые 3 числа
                 bits += bytes.Length % 3 == 2 ? 7 : 4;
                 Console.WriteLine($"{bits} bits");
-                for (int i = 0; i < 40; i++)
-                {
-                    if(i+1 <= 10)
-                        C = 10;
-                    else if (i + 1 <= 26)
-                        C = 12;
-                    else if (i + 1 <= 47)
-                        C = 14;
-
-                    if (maxByteArr[correctionLevel - 1, i] - C - M >= bits)
-                    {
-                        Console.WriteLine($"Version {i + 1}");
-                        break;
-                    }
-                }
+                int version =
+                Enumerable.Range(1, 40).FirstOrDefault(i =>
+                   maxByteArr[correctionLevel - 1, i - 1] - M -
+                   i switch
+                   {
+                       int _ when i <= 10 => 10,
+                       int _ when i <= 26 => 12,
+                       int _ when i <= 40 => 14,
+                       _ => throw new Exception("Error")
+                   } >= bits);
+                if (version == 0) throw new Exception("Your text is too big. Try to choose smaller level correction");
+                Console.WriteLine($"Numeric | Version {version}");
+                return version;
             }
-            else if (isAlphanumeric(bytes))
+            else if (IsAlphanumeric(bytes))
             {
-                var bits = bytes.Length / 2 * 11; // 10 бит на каждые 3 числа
+                var bits = bytes.Length / 2 * 11;
                 bits += (bytes.Length % 2) * 6;
                 Console.WriteLine($"{bits} bits");
-                for (int i = 0; i < 40; i++)
-                {
-                    if (i + 1 <= 10)
-                        C = 9;
-                    else if (i + 1 <= 26)
-                        C = 11;
-                    else if (i + 1 <= 47)
-                        C = 13;
-
-                    if (maxByteArr[correctionLevel - 1, i] - C - M >= bits)
-                    {
-                        Console.WriteLine($"Version {i + 1}");
-                        break;
-                    }
-                }
+                int version =
+                Enumerable.Range(1, 40).FirstOrDefault(i =>
+                   maxByteArr[correctionLevel - 1, i - 1] - M -
+                   i switch
+                   {
+                       int _ when i <= 10 => 9,
+                       int _ when i <= 26 => 11,
+                       int _ when i <= 40 => 13,
+                       _ => throw new Exception("Error")
+                   } >= bits);
+                if (version == 0) throw new Exception("Your text is too big. Try to choose smaller level correction");
+                Console.WriteLine($"AlphaNumeric | Version {version}");
+                return version;
             }
-            else if (isKanji(bytes))
+            else if (IsKanji(bytes))
             {
-                //...
+                var bits = bytes.Length * 13;
+                Console.WriteLine($"{bits} bits");
+                int version =
+                Enumerable.Range(1, 40).FirstOrDefault(i =>
+                   maxByteArr[correctionLevel - 1, i - 1] - M -
+                   i switch
+                   {
+                       int _ when i <= 10 => 8,
+                       int _ when i <= 26 => 10,
+                       int _ when i <= 40 => 12,
+                       _ => throw new Exception("Error")
+                   } >= bits);
+                if (version == 0) throw new Exception("Your text is too big. Try to choose smaller level correction");
+                Console.WriteLine($"Kanji | Version {version}");
+                return version;
             }
-
-            //foreach (var item in bytes)
-            //{
-            //    // Вывод байтового кода каждого символа
-            //    Console.Write($"{item} ");
-            //}
-
+            else
+            {
+                var bits = bytes.Length * 8;
+                Console.WriteLine($"{bits} bits");
+                int version =
+                Enumerable.Range(1, 40).FirstOrDefault(i =>
+                   maxByteArr[correctionLevel - 1, i - 1] - M -
+                   i switch
+                   {
+                       int _ when i <= 10 => 8,
+                       int _ when i <= 40 => 16,
+                       _ => throw new Exception("Error")
+                   } >= bits);
+                if (version == 0) throw new Exception("Your text is too big. Try to choose smaller level correction");
+                Console.WriteLine($"Byte | Version {version}");
+                return version;
+            }
         }
-
-        static bool isNumeric(byte[] bytes) =>
-                    bytes.Where(b => (b > 57 || b < 48)).Count() == 0;
-        static bool isAlphanumeric(byte[] bytes) =>
+        static bool IsNumeric(byte[] bytes) =>
+                bytes.Count(b => (b > 57 || b < 48)) == 0;
+        static bool IsAlphanumeric(byte[] bytes) =>
             bytes.Count(b => b switch
             {
                 byte x when
@@ -95,7 +117,7 @@ namespace QR
                 _ => true
             }) == 0;
 
-        static bool isKanji(byte[] bytes)
+        static bool IsKanji(byte[] bytes)
         {
             for (int i = 0; i < bytes.Length; i += 2)
             {
