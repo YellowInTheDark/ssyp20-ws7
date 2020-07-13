@@ -19,8 +19,46 @@ namespace QR
             byte[] bytes = UTF8Encoding.UTF8.GetBytes(input);
 
             int version = GetVersion(bytes, correctionLevel);
+            if (IsNumeric(bytes)) EncodeNumeric(input, version);
         }
         
+        public static void EncodeNumeric(string input, int version)
+        {
+            string encodedLine = string.Empty;
+            for (int i = 0; i < input.Length / 3; i++)
+            {
+                int tmp = int.Parse(input.Substring(3 * i, 3));
+                encodedLine += $"{Convert.ToString(tmp, 2).PadLeft(10, '0')} ";
+            }
+            if (input.Length % 3 == 2)
+            {
+                int tmp = int.Parse(input.Substring(3 * (input.Length / 3), 2));
+                encodedLine += $"{Convert.ToString(tmp, 2).PadLeft(7, '0')} ";
+            }
+            if (input.Length % 3 == 1) 
+            {
+                int tmp = int.Parse(input.Substring(3 * (input.Length / 3), 1));
+                encodedLine += $"{Convert.ToString(tmp, 2).PadLeft(4, '0')} ";
+            }
+
+            switch (version)
+            {
+                case int _ when version <= 9:
+                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(input.Length, 2).PadLeft(10, '0')} ");
+                    break;
+                case int _ when version <= 26:
+                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(input.Length, 2).PadLeft(12, '0')} ");
+                    break;
+                case int _ when version <= 40:
+                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(input.Length, 2).PadLeft(14, '0')} ");
+                    break;
+            }
+
+            encodedLine = encodedLine.Insert(0, "0001 ");
+            encodedLine.TrimEnd();
+            Console.WriteLine(encodedLine);
+        }
+
         public static int GetVersion(byte[] bytes, int correctionLevel)
         {
             int[,] maxByteArr = new int[4, 40];
@@ -36,7 +74,7 @@ namespace QR
                    maxByteArr[correctionLevel - 1, i - 1] - M -
                    i switch
                    {
-                       int _ when i <= 10 => 10,
+                       int _ when i <= 9 => 10,
                        int _ when i <= 26 => 12,
                        int _ when i <= 40 => 14,
                        _ => throw new Exception("Error")
@@ -55,7 +93,7 @@ namespace QR
                    maxByteArr[correctionLevel - 1, i - 1] - M -
                    i switch
                    {
-                       int _ when i <= 10 => 9,
+                       int _ when i <= 9 => 9,
                        int _ when i <= 26 => 11,
                        int _ when i <= 40 => 13,
                        _ => throw new Exception("Error")
@@ -73,7 +111,7 @@ namespace QR
                    maxByteArr[correctionLevel - 1, i - 1] - M -
                    i switch
                    {
-                       int _ when i <= 10 => 8,
+                       int _ when i <= 9 => 8,
                        int _ when i <= 26 => 10,
                        int _ when i <= 40 => 12,
                        _ => throw new Exception("Error")
@@ -91,7 +129,7 @@ namespace QR
                    maxByteArr[correctionLevel - 1, i - 1] - M -
                    i switch
                    {
-                       int _ when i <= 10 => 8,
+                       int _ when i <= 9 => 8,
                        int _ when i <= 40 => 16,
                        _ => throw new Exception("Error")
                    } >= bits);
