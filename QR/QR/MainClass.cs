@@ -21,6 +21,8 @@ namespace QR
             int version = Encoding.GetVersion(bytes, correctionLevel);
             if (Encoding.IsNumeric(bytes)) Console.WriteLine(Encoding.EncodeNumeric(input, version));
             else if (Encoding.IsAlphanumeric(bytes)) Console.WriteLine(Encoding.EncodeAlphaNumeric(input, version));
+            else if (Encoding.IsKanji(bytes)) return;
+            else Console.WriteLine(Encoding.EncodeByte(input, version));
         }
 
         public int[,] ReadCorrection()

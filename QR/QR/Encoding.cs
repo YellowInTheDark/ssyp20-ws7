@@ -78,7 +78,64 @@ namespace QR
             return encodedLine;
         }
 
-        static int AlphanumericDictionary(char keyValue)
+        public static string EncodeByte(string input, int version)
+        {
+            string encodedLine = string.Empty;
+            for (int i = 0; i < input.Length; i++)
+            {
+                var tmp = input[i];
+                encodedLine += $"{Convert.ToString(tmp, 2).PadLeft(8, '0')} ";
+            }
+            switch (version)
+            {
+                case int _ when version <= 9:
+                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(input.Length, 2).PadLeft(8, '0')} ");
+                    break;
+                case int _ when version <= 40:
+                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(input.Length, 2).PadLeft(16, '0')} ");
+                    break;
+            }
+
+            encodedLine = encodedLine.Insert(0, "0100 ");
+            encodedLine.TrimEnd();
+            return encodedLine;
+        }
+
+        public static string EncodeKanji(string input, int version)
+        {
+            byte[] bytes = UTF8Encoding.UTF8.GetBytes(input);
+            string encodedLine = string.Empty;
+            for (int i = 0; i < input.Length; i++)
+            {
+                //encodedLine += $"{Convert.ToString(sum, 2).PadLeft(11, '0')} ";
+                return "too hard";
+
+            }
+            if (input.Length % 2 == 1)
+            {
+                int tmp = AlphanumericDictionary(input[input.Length - 1]);
+                encodedLine += $"{Convert.ToString(tmp, 2).PadLeft(6, '0')} ";
+            }
+
+            switch (version)
+            {
+                case int _ when version <= 9:
+                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(input.Length, 2).PadLeft(9, '0')} ");
+                    break;
+                case int _ when version <= 26:
+                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(input.Length, 2).PadLeft(11, '0')} ");
+                    break;
+                case int _ when version <= 40:
+                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(input.Length, 2).PadLeft(13, '0')} ");
+                    break;
+            }
+
+            encodedLine = encodedLine.Insert(0, "0010 ");
+            encodedLine.TrimEnd();
+            return encodedLine;
+        }
+
+            static int AlphanumericDictionary(char keyValue)
         {
             Dictionary<char, int> AD = new Dictionary<char, int>
             {
@@ -234,14 +291,16 @@ namespace QR
         {
             for (int i = 0; i < bytes.Length; i += 2)
             {
-                if ((bytes[i] >= 129 && bytes[i] <= 159) && (bytes[i + 1] >= 64 && bytes[i + 1] <= 126) ||
-                    (bytes[i] >= 129 && bytes[i] <= 159) && (bytes[i + 1] >= 128 && bytes[i + 1] <= 252) ||
+                if (bytes[i] >= 129 && bytes[i] <= 159 && bytes[i + 1] >= 64 && bytes[i + 1] <= 126 ||
+                    bytes[i] >= 129 && bytes[i] <= 159 && bytes[i + 1] >= 128 && bytes[i + 1] <= 252 ||
 
-                    (bytes[i] >= 224 && bytes[i] <= 234) && (bytes[i + 1] >= 64 && bytes[i + 1] <= 126) ||
-                    (bytes[i] >= 224 && bytes[i] <= 234) && (bytes[i + 1] >= 128 && bytes[i + 1] <= 252) ||
+                    bytes[i] >= 224 && bytes[i] <= 234 && bytes[i + 1] >= 64 && bytes[i + 1] <= 126 ||
+                    bytes[i] >= 224 && bytes[i] <= 234 && bytes[i + 1] >= 128 && bytes[i + 1] <= 252 ||
 
-                    (bytes[i] >= 234 && bytes[i] <= 235) && (bytes[i + 1] >= 64 && bytes[i + 1] <= 126) ||
-                    (bytes[i] >= 224 && bytes[i] <= 234) && (bytes[i + 1] >= 128 && bytes[i + 1] <= 191))
+                    bytes[i] >= 234 && bytes[i] <= 235 && bytes[i + 1] >= 64 && bytes[i + 1] <= 126 ||
+                    bytes[i] >= 224 && bytes[i] <= 234 && bytes[i + 1] >= 128 && bytes[i + 1] <= 191)
+                { }
+                else 
                     return false;
             }
             return true;
