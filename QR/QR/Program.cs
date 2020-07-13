@@ -46,7 +46,24 @@ namespace QR
             }
             else if (isAlphanumeric(bytes))
             {
-                //...
+                var bits = bytes.Length / 2 * 11; // 10 бит на каждые 3 числа
+                bits += (bytes.Length % 2) * 6;
+                Console.WriteLine($"{bits} bits");
+                for (int i = 0; i < 40; i++)
+                {
+                    if (i + 1 <= 10)
+                        C = 9;
+                    else if (i + 1 <= 26)
+                        C = 11;
+                    else if (i + 1 <= 47)
+                        C = 13;
+
+                    if (maxByteArr[correctionLevel - 1, i] - C - M >= bits)
+                    {
+                        Console.WriteLine($"Version {i + 1}");
+                        break;
+                    }
+                }
             }
             else if (isKanji(bytes))
             {
