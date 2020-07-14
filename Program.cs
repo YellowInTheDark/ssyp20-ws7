@@ -48,6 +48,7 @@ namespace QR
 
             string updateData = UpdateData(data, input.Length, encodingMethod, correctionLevel);
             Console.WriteLine($"Result: {updateData}");
+            Console.WriteLine(updateData.Length);
         }
       
 
@@ -73,6 +74,7 @@ namespace QR
                         Console.WriteLine($"String length in binary system: {LODA}");
                         Console.WriteLine($"Max value for current Method and version: {maxValues[i]}");
                         updateData = encodingMethod + LODA + data;
+                        updateData = filling(updateData, int.Parse(maxValues[i]));
                         break;
                     }
 
@@ -130,6 +132,25 @@ namespace QR
                 }
             }
             return "Exception";
+        }
+
+
+        static string filling(string data, int targetLength)
+        {
+            while (data.Length % 8 != 0)
+            {
+                data = data.Insert(data.Length,"0");
+            }
+            var i = 2;
+            while (data.Length != targetLength)
+            {
+                if (i % 2 == 0)
+                    data = data.Insert(data.Length , "11101100");
+                else
+                    data = data.Insert(data.Length , "00010001");
+                i++;
+            }
+            return data;
         }
 
     }
