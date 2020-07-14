@@ -44,7 +44,8 @@ namespace QR
 
             encodedLine = encodedLine.Insert(0, "0001 ");
             encodedLine = AddEndOfLine(encodedLine, version, correctionLevel);
-            encodedLine = DivideLine(encodedLine, version, correctionLevel);
+            encodedLine = DivideLine(encodedLine);
+            encodedLine = AddCodewords(encodedLine, version, correctionLevel);
             return encodedLine;
         }
 
@@ -62,7 +63,7 @@ namespace QR
             return encodedLine;
         }
 
-        public static string DivideLine(string encodedLine, int version, int correctionLevel)
+        public static string DivideLine(string encodedLine)
         {
             string divided = new string(encodedLine.ToCharArray().Where(c => !Char.IsWhiteSpace(c)).ToArray());
             for (int i = 8; i <= divided.Length; i += 8)
@@ -77,6 +78,23 @@ namespace QR
             return divided;
         }
 
+        public static string AddCodewords(string encodedLine, int version, int correctionLevel)
+        {
+            MainClass main = new MainClass();
+            int[,] maxByteArr = new int[4, 40];
+            maxByteArr = main.ReadCorrection();
+            int numOfCodeword = maxByteArr[correctionLevel - 1, version - 1] / 8;
+            int codewordsMissing = numOfCodeword - encodedLine.Split(' ').Length;
+            for (int i = 0; i < codewordsMissing; i++)
+            {
+                if (i % 2 == 0)
+                    encodedLine += " 11101100";
+                else
+                    encodedLine += " 00010001";
+            }
+
+            return encodedLine;
+        }
 
         public static string EncodeAlphaNumeric(string input, int version, int correctionLevel)
         {
@@ -109,7 +127,8 @@ namespace QR
 
             encodedLine = encodedLine.Insert(0, "0010 ");
             encodedLine = AddEndOfLine(encodedLine, version, correctionLevel);
-            encodedLine = DivideLine(encodedLine, version, correctionLevel);
+            encodedLine = DivideLine(encodedLine);
+            encodedLine = AddCodewords(encodedLine, version, correctionLevel);
             return encodedLine;
         }
 
@@ -133,7 +152,8 @@ namespace QR
 
             encodedLine = encodedLine.Insert(0, "0100 ");
             encodedLine = AddEndOfLine(encodedLine, version, correctionLevel);
-            encodedLine = DivideLine(encodedLine, version, correctionLevel);
+            encodedLine = DivideLine(encodedLine);
+            encodedLine = AddCodewords(encodedLine, version, correctionLevel);
             return encodedLine;
         }
 
@@ -181,7 +201,8 @@ namespace QR
 
             encodedLine = encodedLine.Insert(0, "1000 ");
             encodedLine = AddEndOfLine(encodedLine, version, correctionLevel);
-            encodedLine = DivideLine(encodedLine, version, correctionLevel);
+            encodedLine = DivideLine(encodedLine);
+            encodedLine = AddCodewords(encodedLine, version, correctionLevel);
             return encodedLine;
         }
 
