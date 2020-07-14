@@ -106,6 +106,7 @@ namespace QR
             maxByteArr = main.ReadCorrection();
             int[,] blocksCountArr = new int[4, 40];
             blocksCountArr = main.ReadBlocks();
+            if (blocksCountArr[correctionLevel - 1, version - 1] == 1) return encodedLine;
             int bytesPerBlock = (maxByteArr[correctionLevel - 1, version - 1] / 8) / blocksCountArr[correctionLevel - 1, version - 1];
             int blockMod = (maxByteArr[correctionLevel - 1, version - 1] / 8) % blocksCountArr[correctionLevel - 1, version - 1];
             int[] bytesPerBlockArr = new int[blocksCountArr[correctionLevel - 1, version - 1]];
