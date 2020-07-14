@@ -23,10 +23,10 @@ namespace QR
                 Console.Write($"{item} ");
             }
             int version = Encoding.GetVersion(bytes, correctionLevel);
-            if (Encoding.IsNumeric(bytes)) Console.WriteLine(Encoding.EncodeNumeric(input, version));
-            else if (Encoding.IsAlphanumeric(bytes)) Console.WriteLine(Encoding.EncodeAlphaNumeric(input, version));
-            else if (Encoding.IsKanji(bytes)) Console.WriteLine(Encoding.EncodeKanji(input, version));
-            else Console.WriteLine(Encoding.EncodeByte(input, version));
+            if (Encoding.IsNumeric(bytes)) Console.WriteLine(Encoding.EncodeNumeric(input, version, correctionLevel));
+            else if (Encoding.IsAlphanumeric(bytes)) Console.WriteLine(Encoding.EncodeAlphaNumeric(input, version, correctionLevel));
+            else if (Encoding.IsKanji(bytes)) Console.WriteLine(Encoding.EncodeKanji(input, version, correctionLevel));
+            else Console.WriteLine(Encoding.EncodeByte(input, version, correctionLevel));
 
         }
 

@@ -7,11 +7,14 @@ namespace QR
 {
     class Encoding
     {
-        public static string EncodeNumeric(string input, int version)
+        public static string EncodeNumeric(string input, int version, int correctionLevel)
         {
+
             string encodedLine = string.Empty;
             for (int i = 0; i < input.Length / 3; i++)
             {
+                // если работать только с байтами, на ум приходит только такой вариант:
+                //int.Parse(UTF8Encoding.UTF8.GetString(bytes, i, 1))*100 + int.Parse(UTF8Encoding.UTF8.GetString(bytes, i+1, 1)) * 10 + int.Parse(UTF8Encoding.UTF8.GetString(bytes, i+2, 1))
                 int tmp = int.Parse(input.Substring(3 * i, 3));
                 encodedLine += $"{Convert.ToString(tmp, 2).PadLeft(10, '0')} ";
             }
@@ -41,22 +44,37 @@ namespace QR
 
             encodedLine = encodedLine.Insert(0, "0001 ");
             encodedLine.TrimEnd();
+            encodedLine = AddEndOfLine(encodedLine, version, correctionLevel);
             return encodedLine;
         }
 
-        public static string EncodeAlphaNumeric(string input, int version)
+        public static string AddEndOfLine(string encodedLine, int version, int correctionLevel)
+        {
+            MainClass main = new MainClass();
+            int[,] maxByteArr = new int[4, 40];
+            maxByteArr = main.ReadCorrection();
+            int bits = encodedLine.Count(c => !Char.IsWhiteSpace(c));
+            if (maxByteArr[correctionLevel - 1, version - 1] - bits >= 4)
+            {
+                encodedLine += "0000";
+            }
+            else encodedLine += "0000".Substring(0, maxByteArr[correctionLevel - 1, version - 1] - bits);
+            return encodedLine;
+        }
+
+        public static string EncodeAlphaNumeric(string input, int version, int correctionLevel)
         {
             string encodedLine = string.Empty;
-            for (int i = 0; i < input.Length-1; i+=2)
+            for (int i = 0; i < input.Length - 1; i += 2)
             {
                 var fElement = AlphanumericDictionary(input[i]);
-                var sElement = AlphanumericDictionary(input[i+1]);
+                var sElement = AlphanumericDictionary(input[i + 1]);
                 var sum = fElement * 45 + sElement;
                 encodedLine += $"{Convert.ToString(sum, 2).PadLeft(11, '0')} ";
             }
             if (input.Length % 2 == 1)
             {
-                int tmp = AlphanumericDictionary(input[input.Length-1]);
+                int tmp = AlphanumericDictionary(input[input.Length - 1]);
                 encodedLine += $"{Convert.ToString(tmp, 2).PadLeft(6, '0')} ";
             }
 
@@ -75,10 +93,11 @@ namespace QR
 
             encodedLine = encodedLine.Insert(0, "0010 ");
             encodedLine.TrimEnd();
+            encodedLine = AddEndOfLine(encodedLine, version, correctionLevel);
             return encodedLine;
         }
 
-        public static string EncodeByte(string input, int version)
+        public static string EncodeByte(string input, int version, int correctionLevel)
         {
             string encodedLine = string.Empty;
             for (int i = 0; i < input.Length; i++)
@@ -98,10 +117,11 @@ namespace QR
 
             encodedLine = encodedLine.Insert(0, "0100 ");
             encodedLine.TrimEnd();
+            encodedLine = AddEndOfLine(encodedLine, version, correctionLevel);
             return encodedLine;
         }
 
-        public static string EncodeKanji(string input, int version)
+        public static string EncodeKanji(string input, int version, int correctionLevel)
         {
             byte[] bytes = UTF8Encoding.UTF8.GetBytes(input);
 
@@ -145,10 +165,11 @@ namespace QR
 
             encodedLine = encodedLine.Insert(0, "1000 ");
             encodedLine.TrimEnd();
+            encodedLine = AddEndOfLine(encodedLine, version, correctionLevel);
             return encodedLine;
         }
 
-            static int AlphanumericDictionary(char keyValue)
+        static int AlphanumericDictionary(char keyValue)
         {
             Dictionary<char, int> AD = new Dictionary<char, int>
             {
