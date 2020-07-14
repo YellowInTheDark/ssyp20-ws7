@@ -1,0 +1,13 @@
+C:\Users\kostr\source\repos\QR\bin\Debug\netcoreapp3.1\QR.exe
+C:\Users\kostr\source\repos\QR\bin\Debug\netcoreapp3.1\QR.deps.json
+C:\Users\kostr\source\repos\QR\bin\Debug\netcoreapp3.1\QR.runtimeconfig.json
+C:\Users\kostr\source\repos\QR\bin\Debug\netcoreapp3.1\QR.runtimeconfig.dev.json
+C:\Users\kostr\source\repos\QR\bin\Debug\netcoreapp3.1\QR.dll
+C:\Users\kostr\source\repos\QR\bin\Debug\netcoreapp3.1\QR.pdb
+C:\Users\kostr\source\repos\QR\obj\Debug\netcoreapp3.1\QR.AssemblyInfoInputs.cache
+C:\Users\kostr\source\repos\QR\obj\Debug\netcoreapp3.1\QR.AssemblyInfo.cs
+C:\Users\kostr\source\repos\QR\obj\Debug\netcoreapp3.1\QR.csproj.CoreCompileInputs.cache
+C:\Users\kostr\source\repos\QR\obj\Debug\netcoreapp3.1\QR.dll
+C:\Users\kostr\source\repos\QR\obj\Debug\netcoreapp3.1\QR.pdb
+C:\Users\kostr\source\repos\QR\obj\Debug\netcoreapp3.1\QR.genruntimeconfig.cache
+C:\Users\kostr\source\repos\QR\obj\Debug\netcoreapp3.1\QR.csprojAssemblyReference.cache
