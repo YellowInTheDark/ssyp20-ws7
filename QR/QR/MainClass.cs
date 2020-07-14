@@ -27,13 +27,32 @@ namespace QR
             else if (Encoding.IsAlphanumeric(bytes)) Console.WriteLine(Encoding.EncodeAlphaNumeric(input, version, correctionLevel));
             else if (Encoding.IsKanji(bytes)) Console.WriteLine(Encoding.EncodeKanji(input, version, correctionLevel));
             else Console.WriteLine(Encoding.EncodeByte(input, version, correctionLevel));
-            // Нужно подумать над тем, чтобы передавать не версию и уровень исправления, а просто количество бит.
+            // Нужно подумать над тем, чтобы передавать не версию и уровень исправления, а просто количество бит.q
 
         }
 
         public int[,] ReadCorrection()
         {
             String file = File.ReadAllText(@"CorrectionLevel.txt");
+
+            int i = 0, j = 0;
+            int[,] result = new int[4, 40];
+            foreach (var row in file.Split('\n'))
+            {
+                j = 0;
+                foreach (var col in row.Split(' '))
+                {
+                    result[i, j] = int.Parse(col.Trim());
+                    j++;
+                }
+                i++;
+            }
+            return result;
+        }
+
+        public int[,] ReadBlocks()
+        {
+            String file = File.ReadAllText(@"Blocks.txt");
 
             int i = 0, j = 0;
             int[,] result = new int[4, 40];
