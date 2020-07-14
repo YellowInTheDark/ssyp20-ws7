@@ -1,0 +1,15 @@
+C:\Users\Kolya\Documents\GitHub\ssyp20-ws7\QR code\QR code\obj\Debug\netcoreapp3.1\QR code.csprojAssemblyReference.cache
+C:\Users\Kolya\Documents\GitHub\ssyp20-ws7\QR code\QR code\obj\Debug\netcoreapp3.1\QR code.AssemblyInfoInputs.cache
+C:\Users\Kolya\Documents\GitHub\ssyp20-ws7\QR code\QR code\obj\Debug\netcoreapp3.1\QR code.AssemblyInfo.cs
+C:\Users\Kolya\Documents\GitHub\ssyp20-ws7\QR code\QR code\obj\Debug\netcoreapp3.1\QR code.csproj.CoreCompileInputs.cache
+C:\Users\Kolya\Documents\GitHub\ssyp20-ws7\QR code\QR code\bin\Debug\netcoreapp3.1\input.txt
+C:\Users\Kolya\Documents\GitHub\ssyp20-ws7\QR code\QR code\bin\Debug\netcoreapp3.1\output.txt
+C:\Users\Kolya\Documents\GitHub\ssyp20-ws7\QR code\QR code\bin\Debug\netcoreapp3.1\QR code.exe
+C:\Users\Kolya\Documents\GitHub\ssyp20-ws7\QR code\QR code\bin\Debug\netcoreapp3.1\QR code.deps.json
+C:\Users\Kolya\Documents\GitHub\ssyp20-ws7\QR code\QR code\bin\Debug\netcoreapp3.1\QR code.runtimeconfig.json
+C:\Users\Kolya\Documents\GitHub\ssyp20-ws7\QR code\QR code\bin\Debug\netcoreapp3.1\QR code.runtimeconfig.dev.json
+C:\Users\Kolya\Documents\GitHub\ssyp20-ws7\QR code\QR code\bin\Debug\netcoreapp3.1\QR code.dll
+C:\Users\Kolya\Documents\GitHub\ssyp20-ws7\QR code\QR code\bin\Debug\netcoreapp3.1\QR code.pdb
+C:\Users\Kolya\Documents\GitHub\ssyp20-ws7\QR code\QR code\obj\Debug\netcoreapp3.1\QR code.dll
+C:\Users\Kolya\Documents\GitHub\ssyp20-ws7\QR code\QR code\obj\Debug\netcoreapp3.1\QR code.pdb
+C:\Users\Kolya\Documents\GitHub\ssyp20-ws7\QR code\QR code\obj\Debug\netcoreapp3.1\QR code.genruntimeconfig.cache
