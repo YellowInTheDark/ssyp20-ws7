@@ -43,8 +43,8 @@ namespace QR
             }
 
             encodedLine = encodedLine.Insert(0, "0001 ");
-            encodedLine.TrimEnd();
             encodedLine = AddEndOfLine(encodedLine, version, correctionLevel);
+            encodedLine = DivideLine(encodedLine, version, correctionLevel);
             return encodedLine;
         }
 
@@ -61,6 +61,22 @@ namespace QR
             else encodedLine += "0000".Substring(0, maxByteArr[correctionLevel - 1, version - 1] - bits);
             return encodedLine;
         }
+
+        public static string DivideLine(string encodedLine, int version, int correctionLevel)
+        {
+            string divided = new string(encodedLine.ToCharArray().Where(c => !Char.IsWhiteSpace(c)).ToArray());
+            for (int i = 8; i <= divided.Length; i += 8)
+            {
+                divided = divided.Insert(i, " ");
+                i++;
+            }
+            if(divided.Count(c => !Char.IsWhiteSpace(c)) % 8 != 0)
+            {
+                divided += "00000000".Substring(0, 8 - divided.Count(c => !Char.IsWhiteSpace(c)) % 8);
+            }
+            return divided;
+        }
+
 
         public static string EncodeAlphaNumeric(string input, int version, int correctionLevel)
         {
@@ -92,8 +108,8 @@ namespace QR
             }
 
             encodedLine = encodedLine.Insert(0, "0010 ");
-            encodedLine.TrimEnd();
             encodedLine = AddEndOfLine(encodedLine, version, correctionLevel);
+            encodedLine = DivideLine(encodedLine, version, correctionLevel);
             return encodedLine;
         }
 
@@ -116,8 +132,8 @@ namespace QR
             }
 
             encodedLine = encodedLine.Insert(0, "0100 ");
-            encodedLine.TrimEnd();
             encodedLine = AddEndOfLine(encodedLine, version, correctionLevel);
+            encodedLine = DivideLine(encodedLine, version, correctionLevel);
             return encodedLine;
         }
 
@@ -164,8 +180,8 @@ namespace QR
             }
 
             encodedLine = encodedLine.Insert(0, "1000 ");
-            encodedLine.TrimEnd();
             encodedLine = AddEndOfLine(encodedLine, version, correctionLevel);
+            encodedLine = DivideLine(encodedLine, version, correctionLevel);
             return encodedLine;
         }
 
