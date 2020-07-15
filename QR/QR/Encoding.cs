@@ -74,7 +74,7 @@ namespace QR
                 divided = divided.Insert(i, " ");
                 i++;
             }
-            if(divided.Count(c => !Char.IsWhiteSpace(c)) % 8 != 0)
+            if (divided.Count(c => !Char.IsWhiteSpace(c)) % 8 != 0)
             {
                 divided += "00000000".Substring(0, 8 - divided.Count(c => !Char.IsWhiteSpace(c)) % 8);
             }
@@ -121,11 +121,11 @@ namespace QR
             {
                 bytesPerBlockArr[bytesPerBlockArr.Length - 1 - i] += 1;
             }
-            
+
             for (int i = 0; i < blocksCountArr[correctionLevel - 1, version - 1]; i++)
             {
-                blocks += $"{noSpaces.Substring(0, bytesPerBlockArr[i]*8)} ";
-                noSpaces = noSpaces.Remove(0, bytesPerBlockArr[i]*8);
+                blocks += $"{noSpaces.Substring(0, bytesPerBlockArr[i] * 8)} ";
+                noSpaces = noSpaces.Remove(0, bytesPerBlockArr[i] * 8);
             }
             blocks = blocks.TrimEnd();
             return blocks;
@@ -363,5 +363,55 @@ namespace QR
             return true;
         }
 
+        public static int[,] CreateMatrix(int version)
+        {
+            int size = 21 + 4 * (version - 1);
+            int[,] matrix = new int[size, size];
+            matrix = AddFinderPattern(matrix, version, 0, 0);
+            matrix = AddFinderPattern(matrix, version, 0, size - 7);
+            matrix = AddFinderPattern(matrix, version, size - 7, 0);
+
+            DisplayMatrix(matrix);
+            return matrix;
+        }
+        
+        public static void DisplayMatrix(int[,] matrix)
+        {
+            for (int i = 0; i < matrix.GetLength(0); i++)
+            {
+                for (int j = 0; j < matrix.GetLength(0); j++)
+                {
+                    if (matrix[i, j] == 1) Console.Write("██");
+                    else Console.Write("  "); // "  "
+                    //Console.Write($"{matrix[i, j]} ");
+                }
+                Console.WriteLine();
+            }
+        }
+
+        public static int[,] AddFinderPattern(int[,] matrix, int version, int x, int y)
+        {
+            for (int i = 0; i < 7; i++)
+            {
+                matrix[y, x + i] = 1;
+                matrix[y + 6, x + i] = 1;
+            }
+
+            for (int i = 0; i < 7; i++)
+            {
+                matrix[y + i, x] = 1;
+                matrix[y + i, x + 6] = 1;
+            }
+
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    matrix[y + 2 + i, x + 2 + j] = 1;
+                }
+            }
+
+            return matrix;
+        }
     }
 }
