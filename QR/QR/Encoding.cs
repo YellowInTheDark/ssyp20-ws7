@@ -371,6 +371,7 @@ namespace QR
             matrix = AddFinderPattern(matrix, version, 0, size - 7);
             matrix = AddFinderPattern(matrix, version, size - 7, 0);
             matrix = AddAlignment(matrix, version);
+            matrix = AddSyncLine(matrix);
 
             DisplayMatrix(matrix);
             return matrix;
@@ -443,7 +444,7 @@ namespace QR
                 if (cordsArr[i, 0] == 0 || cordsArr[i, 1] == 0) break;
                 if ((cordsArr[i, 0] == 6 && cordsArr[i, 1] + 7 >= matrix.GetLength(0)) ||
                     (cordsArr[i, 0] == 6 && cordsArr[i, 1] - 7 <= 0) ||
-                    (cordsArr[i, 0] >= matrix.GetLength(0) && cordsArr[i, 1] - 7 <= 0)) continue;
+                    (cordsArr[i, 0] + 7 >= matrix.GetLength(0) && cordsArr[i, 1] - 7 <= 0)) continue;
                 matrix[cordsArr[i, 0], cordsArr[i, 1]] = 1;
                 int x = cordsArr[i, 0] - 2;
                 int y = cordsArr[i, 1] - 2;
@@ -459,6 +460,25 @@ namespace QR
                     matrix[y + j, x + 4] = 1;
                 }
 
+            }
+
+            return matrix;
+        }
+
+        public static int[,] AddSyncLine(int[,] matrix)
+        {
+            for (int i = 8; i < matrix.GetLength(0) - 8; i++)
+            {
+                if (i % 2 == 0)
+                {
+                    matrix[i, 6] = 1;
+                    matrix[6, i] = 1;
+                }
+                else
+                {
+                    matrix[i, 6] = 0;
+                    matrix[6, i] = 0;
+                }
             }
 
             return matrix;
