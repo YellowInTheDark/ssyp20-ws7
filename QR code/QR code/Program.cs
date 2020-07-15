@@ -28,10 +28,10 @@ namespace QR_code
         }
         static void Main()
         {
-            string line = "";
+            string input = "";
             try
             {
-                line = File.ReadAllText("./input.txt");
+                input = File.ReadAllText("./input.txt");
             }
             catch
             {
@@ -39,7 +39,34 @@ namespace QR_code
                 Environment.Exit(0);
             }
 
-            Console.WriteLine(BestMode(line));
+            string bestMode = BestMode(input);
+            string infoLine = "";
+            if (bestMode == "numeric")
+            {
+                int len = input.Length;
+                for (int i = 0; i <= len - 3; i += 3)
+                {
+                    int trio = int.Parse(input.Substring(i, 3));
+                    string tempLine = Convert.ToString(trio, 2);
+                    for (int j = tempLine.Length; j < 10; j++) infoLine += "0";
+                    infoLine += tempLine;
+                }
+                if (len % 3 == 1)
+                {
+                    int ost = int.Parse(input.Substring(len - 1, 1));
+                    string tempLine = Convert.ToString(ost, 2);
+                    for (int j = tempLine.Length; j < 4; j++) infoLine += "0";
+                    infoLine += tempLine;
+                }
+                else if (len % 3 == 2)
+                {
+                    int ost = int.Parse(input.Substring(len - 2, 2));
+                    string tempLine = Convert.ToString(ost, 2);
+                    for (int j = tempLine.Length; j < 7; j++) infoLine += "0";
+                    infoLine += tempLine;
+                }
+            }
+            Console.WriteLine(infoLine);
         }
     }
 }
