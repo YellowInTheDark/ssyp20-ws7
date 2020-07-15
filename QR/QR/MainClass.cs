@@ -28,7 +28,7 @@ namespace QR
             else if (Encoding.IsKanji(bytes)) Console.WriteLine(Encoding.EncodeKanji(input, version, correctionLevel));
             else Console.WriteLine(Encoding.EncodeByte(input, version, correctionLevel));
 
-            Encoding.CreateMatrix(version);
+            Matrix.CreateMatrix(version);
             // Нужно подумать над тем, чтобы передавать не версию и уровень исправления, а просто количество бит.q
 
         }
