@@ -74,6 +74,8 @@ namespace QR
                         updateData = encodingMethod + LODA + data;
                         updateData = filling(updateData, int.Parse(maxValues[i]));
                         updateData = DivisionIntoBlocks(updateData, int.Parse(maxValues[i]), i, correctionLevel);
+                        string matrix = GenerateMatrix(i+1, correctionLevel);
+
                         break;
                     }
 
@@ -186,6 +188,118 @@ namespace QR
 
             }
             return data;
+        }
+
+
+        static string GenerateMatrix(int version, int correctionLevel)
+        {
+            string d = "";
+            var size = AllDictionaries.SizeDictionary(version-1);
+            int[,] matrix = new int[size, size];
+            int[,] searchPatterns = {{1,1,1,1,1,1,1}, {1,0,0,0,0,0,1}, {1,0,1,1,1,0,1}, {1,0,1,1,1,0,1}, {1,0,1,1,1,0,1}, {1,0,0,0,0,0,1}, {1,1,1,1,1,1,1}};
+            int[,] alignmentPatterns = { { 1, 1, 1, 1, 1 }, { 1, 0, 0, 0, 1 }, { 1, 0, 1, 0, 1 }, { 1, 0, 0, 0, 1 }, { 1, 1, 1, 1, 1 } };
+            for (int i = 0; i < 7; i++)
+            {
+                for (int j = 0; j < 7; j++)
+                {
+                    matrix[i, j] = searchPatterns[i, j];
+                }
+            }
+            for (int i = 0; i < 7; i++)
+            {
+                for (int j = 0; j < 7; j++)
+                {
+                    matrix[i+size-7, j] = searchPatterns[i, j];
+                }
+            }
+            for (int i = 0; i < 7; i++)
+            {
+                for (int j = 0; j < 7; j++)
+                {
+                    matrix[i, j+size-7] = searchPatterns[i, j];
+                }
+            }
+            if (version == 1)
+            {
+            }
+            else if (version < 7)
+            {
+                var alignmentPatternspos = int.Parse(File.ReadLines("alignmentPatternsPos.txt").ElementAt(version - 1));
+                for (int i = 0; i < 5; i++)
+                {
+                    for (int j = 0; j < 5; j++)
+                    {
+                        matrix[i + alignmentPatternspos - 2, j + alignmentPatternspos - 2] = alignmentPatterns[i, j];
+                    }
+                }
+            }
+            else
+            {
+                string[] alignmentPatternspos = File.ReadLines("alignmentPatternsPos.txt").ElementAt(version - 1).Split();
+                for (int i = 0; i < alignmentPatternspos.Length; i++)
+                {
+                    for (int j = 0; j < alignmentPatternspos.Length; j++)
+                    {
+                        if ((i == 0 && j == alignmentPatternspos.Length - 1) || (i == 0 && j == 0) || (j == 0 && i == alignmentPatternspos.Length - 1))
+                            continue;
+                        else
+                        {
+                            int X = int.Parse(alignmentPatternspos[j]);
+                            int Y = int.Parse(alignmentPatternspos[i]);
+                            int check = 0;
+                            for (int k = 0; k < 5; k++)
+                            {
+                                for (int g = 0; g < 5; g++)
+                                {
+                                    if (matrix[k + X - 2, g + Y - 2] == 1)
+                                    {
+                                        check = 1;
+                                        break;
+                                    }    
+                                    matrix[k + X - 2, g + Y - 2] = alignmentPatterns[k, g];
+                                }
+                                if (check == 1)
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            int l = 2;
+            for (int i = 7; i < size - 7; i++)
+            {
+                if (l % 2 == 0)
+                    matrix[i, 6] = 0;
+                else
+                    matrix[i, 6] = 1;
+                l++;
+            }
+            for (int i = 8; i < size - 7; i++)
+            {
+                if (l % 2 == 0)
+                    matrix[6, i] = 0;
+                else
+                    matrix[6, i] = 1;
+                l++;
+            }
+            for (int i = 0; i < size; i++)
+            {
+                for (int j = 0; j < size; j++)
+                {
+                    if (matrix[j, i] ==0)
+                        Console.Write("  ");
+                    else
+                        Console.Write("██");
+                }
+                
+                Console.WriteLine();
+            }
+            //matrix = matrix.
+            return d;
+
+        
         }
 
     }

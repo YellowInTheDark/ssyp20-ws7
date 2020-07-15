@@ -59,5 +59,19 @@ namespace QR
             return AD[keyValue];
 
         }
+
+
+        public static int SizeDictionary(int keyValue)
+        {
+            int[] size = new int[40];
+            int first = 21;
+            for (int i = 0; i < 40; i++)
+            {
+                size[i] = first;
+                first += 4;
+            }
+            return size[keyValue];
+
+        }
     }
 }
