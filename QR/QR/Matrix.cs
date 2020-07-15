@@ -27,7 +27,7 @@ namespace QR
             {
                 for (int j = 0; j < matrix.GetLength(0); j++)
                 {
-                    if (matrix[i, j] == 1) Console.Write("██");
+                    if (matrix[i, j] == 1) Console.Write("██"); //
                     else Console.Write("  "); // "  "
                     //Console.Write($"{matrix[i, j]} ");
                 }

@@ -87,7 +87,7 @@ namespace QR
             int[,] maxByteArr = new int[4, 40];
             maxByteArr = main.ReadCorrection();
             int numOfCodeword = maxByteArr[correctionLevel - 1, version - 1] / 8;
-            int codewordsMissing = numOfCodeword - encodedLine.Split(' ').Length;
+            int codewordsMissing = numOfCodeword - encodedLine.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
             for (int i = 0; i < codewordsMissing; i++)
             {
                 if (i % 2 == 0)
