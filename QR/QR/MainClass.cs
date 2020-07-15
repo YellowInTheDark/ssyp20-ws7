@@ -70,5 +70,24 @@ namespace QR
             }
             return result;
         }
+
+        public int[,] ReadAlignment()
+        {
+            String file = File.ReadAllText(@"AlignmentPatterns.txt");
+
+            int i = 0, j = 0;
+            int[,] result = new int[40, 7];
+            foreach (var row in file.Split('\n'))
+            {
+                j = 0;
+                foreach (var col in row.Split(' '))
+                {
+                    result[i, j] = int.Parse(col.Trim());
+                    j++;
+                }
+                i++;
+            }
+            return result;
+        }
     }
 }

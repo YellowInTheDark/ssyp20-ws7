@@ -370,11 +370,12 @@ namespace QR
             matrix = AddFinderPattern(matrix, version, 0, 0);
             matrix = AddFinderPattern(matrix, version, 0, size - 7);
             matrix = AddFinderPattern(matrix, version, size - 7, 0);
+            matrix = AddAlignment(matrix, version);
 
             DisplayMatrix(matrix);
             return matrix;
         }
-        
+
         public static void DisplayMatrix(int[,] matrix)
         {
             for (int i = 0; i < matrix.GetLength(0); i++)
@@ -409,6 +410,55 @@ namespace QR
                 {
                     matrix[y + 2 + i, x + 2 + j] = 1;
                 }
+            }
+
+            return matrix;
+        }
+
+        public static int[,] AddAlignment(int[,] matrix, int version)
+        {
+            MainClass main = new MainClass();
+            int[,] alignmentArr = new int[40, 7];
+            alignmentArr = main.ReadAlignment();
+            int[] cords = new int[7];
+            for (int i = 0; i < 7; i++)
+            {
+                cords[i] = alignmentArr[version - 1, i];
+            }
+            int[,] cordsArr = new int[cords.Length*cords.Length, 2];
+            int length = cords.Count(e => e != 0);
+            for (int i = 0; i < (cords.Length*cords.Length); i++)
+            {
+                if (cords[i] == 0) break;
+                for (int j = 0; j < cords.Length; j++)
+                {
+                    if (cords[j] == 0) break;
+                    cordsArr[j+length*i, 0] = cords[i];
+                    cordsArr[j+length*i, 1] = cords[j];
+                }
+            }
+
+            for (int i = 0; i < (cords.Length*cords.Length); i++)
+            {
+                if (cordsArr[i, 0] == 0 || cordsArr[i, 1] == 0) break;
+                if ((cordsArr[i, 0] == 6 && cordsArr[i, 1] + 7 >= matrix.GetLength(0)) ||
+                    (cordsArr[i, 0] == 6 && cordsArr[i, 1] - 7 <= 0) ||
+                    (cordsArr[i, 0] >= matrix.GetLength(0) && cordsArr[i, 1] - 7 <= 0)) continue;
+                matrix[cordsArr[i, 0], cordsArr[i, 1]] = 1;
+                int x = cordsArr[i, 0] - 2;
+                int y = cordsArr[i, 1] - 2;
+                for (int j = 0; j < 5; j++)
+                {
+                    matrix[y, x + j] = 1;
+                    matrix[y + 4, x + j] = 1;
+                }
+
+                for (int j = 0; j < 5; j++)
+                {
+                    matrix[y + j, x] = 1;
+                    matrix[y + j, x + 4] = 1;
+                }
+
             }
 
             return matrix;
