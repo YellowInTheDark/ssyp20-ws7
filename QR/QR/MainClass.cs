@@ -148,7 +148,7 @@ namespace QR
         {
             String file = File.ReadAllText(@"GaloisField.txt");
             int i = 0;
-            byte[] result = new byte[255];
+            byte[] result = new byte[256];
             foreach (var row in file.Split('\n'))
             {
                 result[i] = byte.Parse(row.Trim());
@@ -161,7 +161,7 @@ namespace QR
         {
             String file = File.ReadAllText(@"BackGaloisField.txt");
             int i = 0;
-            byte[] result = new byte[255];
+            byte[] result = new byte[256];
             foreach (var row in file.Split('\n'))
             {
                 result[i] = byte.Parse(row.Trim());

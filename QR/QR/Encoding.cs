@@ -70,6 +70,8 @@ namespace QR
 
             for (int i = 0; i < blocks.Length; i++)
             {
+                correctionBytes = string.Empty;
+
                 newArr = new byte[Math.Max(corrBytePerBlock, blocks[i].Length / 8)];
 
                 byte[] bytes = new byte[blocks[i].Length / 8];
@@ -88,7 +90,7 @@ namespace QR
 
                     byte A = newArr[0];
                     //newArr = newArr.Where((val, idx) => idx != 0).Append(0).ToArray();
-                    for (int l = 1; l < newArr.Length; l ++)
+                    for (int l = 1; l < newArr.Length; l++)
                     {
                         newArr[l - 1] = newArr[l];
                         newArr[l] = 0;
@@ -105,17 +107,18 @@ namespace QR
 
                     }
                 }
-            }
-            Console.WriteLine("Correction Bytes start");
-            for (int i = 0; i < corrBytePerBlock; i++)
-            {
-                correctionBytes += $" {Convert.ToString(newArr[i], 2).PadLeft(8, '0')}";
-                
-                Console.Write($" {Convert.ToString(newArr[i], 2).PadLeft(8, '0')}");
-            }
-            Console.WriteLine("\nCorrection Bytes end");
 
-            encodedLine += correctionBytes;
+                Console.WriteLine($"Correction Bytes start of block {i+1} \n");
+                for (int k = 0; k < corrBytePerBlock; k++)
+                {
+                    correctionBytes += $" {Convert.ToString(newArr[k], 2).PadLeft(8, '0')}";
+
+                    Console.Write($" {Convert.ToString(newArr[k], 2).PadLeft(8, '0')}");
+                }
+                Console.WriteLine($"\nCorrection Bytes end of block {i+1}");
+
+                encodedLine += correctionBytes;
+            }
             return encodedLine;
         }
 
@@ -233,6 +236,9 @@ namespace QR
             encodedLine = DivideLine(encodedLine);
             encodedLine = AddCodewords(encodedLine, version, correctionLevel);
             encodedLine = DivideBlocks(encodedLine, version, correctionLevel);
+            encodedLine = CreateCorrectionByte(encodedLine, version, correctionLevel);
+
+
             return encodedLine;
         }
 
@@ -259,6 +265,9 @@ namespace QR
             encodedLine = DivideLine(encodedLine);
             encodedLine = AddCodewords(encodedLine, version, correctionLevel);
             encodedLine = DivideBlocks(encodedLine, version, correctionLevel);
+            encodedLine = CreateCorrectionByte(encodedLine, version, correctionLevel);
+
+
             return encodedLine;
         }
 
@@ -309,6 +318,8 @@ namespace QR
             encodedLine = DivideLine(encodedLine);
             encodedLine = AddCodewords(encodedLine, version, correctionLevel);
             encodedLine = DivideBlocks(encodedLine, version, correctionLevel);
+            encodedLine = CreateCorrectionByte(encodedLine, version, correctionLevel);
+
             return encodedLine;
         }
 
