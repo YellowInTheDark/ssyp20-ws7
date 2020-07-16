@@ -16,6 +16,9 @@ namespace QR
             matrix = AddFinderPattern(matrix, version, size - 7, 0);
             matrix = AddAlignment(matrix, version);
             matrix = AddSyncLine(matrix);
+            matrix = AddVersion(matrix, version);
+            matrix = AddMask(matrix);
+            matrix = AddData(matrix, version);
 
             DisplayMatrix(matrix);
             return matrix;
@@ -127,5 +130,117 @@ namespace QR
 
             return matrix;
         }
+
+        public static int[,] AddVersion(int[,] matrix, int version)
+        {
+            if (version >= 7)
+            {
+                MainClass main = new MainClass();
+                string[,] versionArr = new string[34, 3];
+                versionArr = main.ReadVersionCode();
+                int size = matrix.GetLength(0);
+
+                for (int i = 0; i < 3; i++)
+                {
+                    for (int j = 0; j < 6; j++)
+                    {
+                        if (versionArr[version - 7, i][j] == '1')
+                        {
+                            matrix[size - 11 + i, j] = 1;
+                            matrix[j, size - 11 + i] = 1;
+                        }
+                        else
+                        {
+                            matrix[size - 11 + i, j] = 0;
+                            matrix[j, size - 11 + i] = 0;
+                        }
+                    }
+                }
+
+            }
+            return matrix;
+        }
+
+        public static int[,] AddMask(int[,] matrix)
+        {
+            MainClass main = new MainClass();
+            string[,] maskArr = new string[4, 8];
+            maskArr = main.ReadMaskCode();
+
+            //... Не определена маска
+
+            return matrix;
+        }
+
+        public static int[,] AddData(int[,] matrix, int version) // Наработки по укладке данных
+        {
+            //int size = matrix.GetLength(0);
+            //int x = size - 1;
+            //int y = size - 1;
+
+            
+            //while (x >= size - (version >= 7 ? 12 : 8))
+            //{
+            //    y = size - 1;
+            //    for (int i = 0; i < size - 9; i++)
+            //    {
+                    
+            //        for (int j = 0; j < 2; j++)
+            //        {
+            //            x -= j;
+            //            matrix[y, x] = 1;
+            //        }
+            //        y -= 1;
+            //        x += 1;
+            //    }
+            //    x -= 2;
+            //    y += 1;
+            //    for (int i = y; i < size; i++)
+            //    {
+            //        for (int j = 0; j < 2; j++)
+            //        {
+            //            x -= j;
+            //            matrix[y, x] = 1;
+            //        }
+            //        y += 1;
+            //        x += 1;
+            //    }
+            //    x -= 2;
+
+            //}
+
+            //while (x >= 10)
+            //{
+            //    x += 1;
+            //    y = size - 1;
+            //    for (int i = 0; i < size; i++)
+            //    {
+
+            //        for (int j = 0; j < 2; j++)
+            //        {
+            //            x -= j;
+            //            matrix[y, x] = 1;
+            //        }
+            //        y -= 1;
+            //        x += 1;
+            //    }
+            //    x -= 2;
+            //    y += 1;
+            //    for (int i = y; i < size; i++)
+            //    {
+            //        for (int j = 0; j < 2; j++)
+            //        {
+            //            x -= j;
+            //            matrix[y, x] = 1;
+            //        }
+            //        y += 1;
+            //        x += 1;
+            //    }
+            //    x -= 2;
+            //}
+
+
+            return matrix;
+        } 
     }
 }

@@ -13,8 +13,6 @@ namespace QR
             string encodedLine = string.Empty;
             for (int i = 0; i < input.Length / 3; i++)
             {
-                // если работать только с байтами, на ум приходит только такой вариант:
-                //int.Parse(UTF8Encoding.UTF8.GetString(bytes, i, 1))*100 + int.Parse(UTF8Encoding.UTF8.GetString(bytes, i+1, 1)) * 10 + int.Parse(UTF8Encoding.UTF8.GetString(bytes, i+2, 1))
                 int tmp = int.Parse(input.Substring(3 * i, 3));
                 encodedLine += $"{Convert.ToString(tmp, 2).PadLeft(10, '0')} ";
             }
@@ -48,9 +46,79 @@ namespace QR
             encodedLine = AddCodewords(encodedLine, version, correctionLevel);
 
             encodedLine = DivideBlocks(encodedLine, version, correctionLevel);
+            encodedLine = CreateCorrectionByte(encodedLine, version, correctionLevel);
+
 
             return encodedLine;
         }
+
+
+        public static string CreateCorrectionByte(string encodedLine, int version, int correctionLevel)
+        {
+            MainClass main = new MainClass();
+            int[,] corrBytePerBlockArr = new int[4, 40];
+            corrBytePerBlockArr = main.ReadCorrectionBytePerBlock();
+            byte[] GaloisField = main.ReadGaloisField();
+            byte[] BackGaloisField = main.ReadBackGaloisField();
+
+            string correctionBytes = string.Empty;
+
+            int corrBytePerBlock = corrBytePerBlockArr[correctionLevel - 1, version - 1];
+            byte[] Polynomial = Dicts.PolynomialDict(corrBytePerBlock);
+            string[] blocks = encodedLine.Split(' ');
+            byte[] newArr = default;
+
+            for (int i = 0; i < blocks.Length; i++)
+            {
+                newArr = new byte[Math.Max(corrBytePerBlock, blocks[i].Length / 8)];
+
+                byte[] bytes = new byte[blocks[i].Length / 8];
+                for (int j = 0; j < blocks[i].Length / 8; ++j)
+                {
+                    bytes[j] = Convert.ToByte(blocks[i].Substring(8 * j, 8), 2);
+                }
+
+                for (int j = 0; j < bytes.Length; j++)
+                {
+                    newArr[j] = bytes[j];
+                }
+
+                for (int j = 0; j < blocks[i].Length / 8; ++j)
+                {
+
+                    byte A = newArr[0];
+                    //newArr = newArr.Where((val, idx) => idx != 0).Append(0).ToArray();
+                    for (int l = 1; l < newArr.Length; l ++)
+                    {
+                        newArr[l - 1] = newArr[l];
+                        newArr[l] = 0;
+                    }
+                    if (A == 0) continue;
+                    byte B = BackGaloisField[A];
+                    byte BPolynomial;
+                    for (int k = 0; k < corrBytePerBlock; k++)
+                    {
+                        //BPolynomial[k] = (byte)(Polynomial[k] + B);
+                        //newArr[k] = (byte)(GaloisField[B] ^ BPolynomial[k]);
+                        BPolynomial = (byte)((Polynomial[k] % 255 + B % 255) % 255);
+                        newArr[k] = (byte)(GaloisField[BPolynomial] ^ newArr[k]);
+
+                    }
+                }
+            }
+            Console.WriteLine("Correction Bytes start");
+            for (int i = 0; i < corrBytePerBlock; i++)
+            {
+                correctionBytes += $" {Convert.ToString(newArr[i], 2).PadLeft(8, '0')}";
+                
+                Console.Write($" {Convert.ToString(newArr[i], 2).PadLeft(8, '0')}");
+            }
+            Console.WriteLine("\nCorrection Bytes end");
+
+            encodedLine += correctionBytes;
+            return encodedLine;
+        }
+
 
         public static string AddEndOfLine(string encodedLine, int version, int correctionLevel)
         {
@@ -106,7 +174,7 @@ namespace QR
             maxByteArr = main.ReadCorrection();
             int[,] blocksCountArr = new int[4, 40];
             blocksCountArr = main.ReadBlocks();
-            if (blocksCountArr[correctionLevel - 1, version - 1] == 1) return encodedLine;
+            if (blocksCountArr[correctionLevel - 1, version - 1] == 1) return new string(encodedLine.ToCharArray().Where(c => !Char.IsWhiteSpace(c)).ToArray()); ;
             int bytesPerBlock = (maxByteArr[correctionLevel - 1, version - 1] / 8) / blocksCountArr[correctionLevel - 1, version - 1];
             int blockMod = (maxByteArr[correctionLevel - 1, version - 1] / 8) % blocksCountArr[correctionLevel - 1, version - 1];
             int[] bytesPerBlockArr = new int[blocksCountArr[correctionLevel - 1, version - 1]];
@@ -362,7 +430,5 @@ namespace QR
 
             return true;
         }
-
-
     }
 }

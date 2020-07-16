@@ -71,6 +71,25 @@ namespace QR
             return result;
         }
 
+        public int[,] ReadCorrectionBytePerBlock()
+        {
+            String file = File.ReadAllText(@"CorrectionBytePerBlock.txt");
+
+            int i = 0, j = 0;
+            int[,] result = new int[4, 40];
+            foreach (var row in file.Split('\n'))
+            {
+                j = 0;
+                foreach (var col in row.Split(' '))
+                {
+                    result[i, j] = int.Parse(col.Trim());
+                    j++;
+                }
+                i++;
+            }
+            return result;
+        }
+
         public int[,] ReadAlignment()
         {
             String file = File.ReadAllText(@"AlignmentPatterns.txt");
@@ -89,5 +108,67 @@ namespace QR
             }
             return result;
         }
+        public string[,] ReadVersionCode()
+        {
+            // Коды версий для qr кода 7+ версии
+            String file = File.ReadAllText(@"VersionCode.txt"); 
+
+            int i = 0, j = 0;
+            string[,] result = new string[34, 3];
+            foreach (var row in file.Split('\n'))
+            {
+                j = 0;
+                foreach (var col in row.Split(' '))
+                {
+                    result[i, j] = col.Trim();
+                    j++;
+                }
+                i++;
+            }
+            return result;
+        }
+        public string[,] ReadMaskCode()
+        {
+            // Коды версий для qr кода 7+ версии
+            String file = File.ReadAllText(@"MaskCode.txt");
+
+            string[,] result = new string[4, 8];
+            var data = file.Split("\n");
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    result[i, j] = data[i*8+j].Trim();
+                }
+            }
+            return result;
+        }
+
+        public byte[] ReadGaloisField()
+        {
+            String file = File.ReadAllText(@"GaloisField.txt");
+            int i = 0;
+            byte[] result = new byte[255];
+            foreach (var row in file.Split('\n'))
+            {
+                result[i] = byte.Parse(row.Trim());
+                i++;
+            }
+            return result;
+        }
+
+        public byte[] ReadBackGaloisField()
+        {
+            String file = File.ReadAllText(@"BackGaloisField.txt");
+            int i = 0;
+            byte[] result = new byte[255];
+            foreach (var row in file.Split('\n'))
+            {
+                result[i] = byte.Parse(row.Trim());
+                i++;
+            }
+            return result;
+        }
+
     }
 }
