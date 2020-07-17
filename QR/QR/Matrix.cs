@@ -7,7 +7,7 @@ namespace QR
 {
     class Matrix
     {
-        public static int[,] CreateMatrix(string encodedLine, int version)
+        public static int[,] CreateMatrix(string encodedLine, int version, int correctionLevel)
         {
             int size = 21 + 4 * (version - 1);
             int[,] matrix = new int[size, size];
@@ -17,7 +17,7 @@ namespace QR
             matrix = AddAlignment(matrix, version);
             matrix = AddSyncLine(matrix);
             matrix = AddVersion(matrix, version);
-            matrix = AddMask(matrix);
+            matrix = AddMask(matrix, correctionLevel);
             matrix = AddData(matrix, encodedLine, version);
 
             DisplayMatrix(matrix);
@@ -189,13 +189,49 @@ namespace QR
             return matrix;
         }
 
-        public static int[,] AddMask(int[,] matrix)
+        public static int[,] AddMask(int[,] matrix, int correctionLevel)
         {
             MainClass main = new MainClass();
             string[,] maskArr = new string[4, 8];
             maskArr = main.ReadMaskCode();
+            string mask = maskArr[correctionLevel - 1, 0]; // ЗАМЕНИТЬ 0 НА НЕОБХОДИМЫЙ НОМЕР ПОСЛЕ ВЫЧИСЛЕНИЯ ОПТИМАЛЬНОЙ
+            int size = matrix.GetLength(0);
+            // Левый поисковой модуль
+            for (int i = 0; i < 6; i++)
+            {
+                if (mask[i] == '1') matrix[8, i] = 1;
+                else matrix[8, i] = -1;
+            }
 
-            //... Не определена маска
+            for (int i = 0; i < 2; i++)
+            {
+                if (mask[6+i] == '1') matrix[8, 7+i] = 1;
+                else matrix[8, 7+i] = -1;
+            }
+
+            if (mask[8] == '1') matrix[7, 8] = 1;
+            else matrix[7, 8] = -1;
+
+            for (int i = 0; i < 6; i++)
+            {
+                if (mask[9 + i] == '1') matrix[5-i, 8] = 1;
+                else matrix[5-i, 8] = -1;
+            }
+
+            // Нижний поисковой модуль
+            for (int i = 0; i < 7; i++)
+            {
+                if (mask[i] == '1') matrix[size - 1 - i, 8] = 1;
+                else matrix[size - 1 - i, 8] = -1;
+            }
+            matrix[size - 8, 8] = 1;
+
+            // Правый поисковой модуль
+            for (int i = 0; i < 8; i++)
+            {
+                if (mask[7+i] == '1') matrix[8, size - 8 + i] = 1;
+                else matrix[8, size - 8 + i] = -1;
+            }
 
             return matrix;
         }
