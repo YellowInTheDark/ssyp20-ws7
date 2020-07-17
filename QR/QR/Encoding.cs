@@ -26,6 +26,7 @@ namespace QR
                 int tmp = int.Parse(input.Substring(3 * (input.Length / 3), 1));
                 encodedLine += $"{Convert.ToString(tmp, 2).PadLeft(4, '0')} ";
             }
+            Console.WriteLine($"INPUT BITS: {encodedLine}");
 
             switch (version)
             {
@@ -39,7 +40,6 @@ namespace QR
                     encodedLine = encodedLine.Insert(0, $"{Convert.ToString(input.Length, 2).PadLeft(14, '0')} ");
                     break;
             }
-
             encodedLine = encodedLine.Insert(0, "0001 ");
             encodedLine = AddEndOfLine(encodedLine, version, correctionLevel);
             encodedLine = DivideLine(encodedLine);
@@ -246,6 +246,7 @@ namespace QR
                 int tmp = Dicts.AlphanumericDictionary(input[input.Length - 1]);
                 encodedLine += $"{Convert.ToString(tmp, 2).PadLeft(6, '0')} ";
             }
+            Console.WriteLine($"INPUT BITS: {encodedLine}");
 
             switch (version)
             {
@@ -260,6 +261,7 @@ namespace QR
                     break;
             }
 
+            
             encodedLine = encodedLine.Insert(0, "0010 ");
             encodedLine = AddEndOfLine(encodedLine, version, correctionLevel);
             encodedLine = DivideLine(encodedLine);
@@ -275,18 +277,21 @@ namespace QR
         public static string EncodeByte(string input, int version, int correctionLevel)
         {
             string encodedLine = string.Empty;
-            for (int i = 0; i < input.Length; i++)
+            byte[] bytes = UTF8Encoding.UTF8.GetBytes(input);
+            for (int i = 0; i < bytes.Length; i++)
             {
-                var tmp = input[i];
+                var tmp = bytes[i];
                 encodedLine += $"{Convert.ToString(tmp, 2).PadLeft(8, '0')} ";
             }
+            Console.WriteLine($"INPUT BITS: {encodedLine}");
+
             switch (version)
             {
                 case int _ when version <= 9:
-                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(input.Length, 2).PadLeft(8, '0')} ");
+                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(bytes.Length, 2).PadLeft(8, '0')} ");
                     break;
                 case int _ when version <= 40:
-                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(input.Length, 2).PadLeft(16, '0')} ");
+                    encodedLine = encodedLine.Insert(0, $"{Convert.ToString(bytes.Length, 2).PadLeft(16, '0')} ");
                     break;
             }
 
@@ -294,6 +299,8 @@ namespace QR
             encodedLine = AddEndOfLine(encodedLine, version, correctionLevel);
             encodedLine = DivideLine(encodedLine);
             encodedLine = AddCodewords(encodedLine, version, correctionLevel);
+            Console.WriteLine($"+ Codewords {encodedLine}");
+
             encodedLine = DivideBlocks(encodedLine, version, correctionLevel);
             encodedLine = CreateCorrectionByte(encodedLine, version, correctionLevel);
 
@@ -330,6 +337,7 @@ namespace QR
                     encodedLine += $"{Convert.ToString(result, 2).PadLeft(13, '0')} ";
                 }
             }
+            Console.WriteLine($"INPUT BITS: {encodedLine}");
 
             switch (version)
             {
@@ -344,6 +352,7 @@ namespace QR
                     break;
             }
 
+            Console.WriteLine($"INPUT BITS: {encodedLine}");
             encodedLine = encodedLine.Insert(0, "1000 ");
             encodedLine = AddEndOfLine(encodedLine, version, correctionLevel);
             encodedLine = DivideLine(encodedLine);
