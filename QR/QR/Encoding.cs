@@ -47,11 +47,40 @@ namespace QR
 
             encodedLine = DivideBlocks(encodedLine, version, correctionLevel);
             encodedLine = CreateCorrectionByte(encodedLine, version, correctionLevel);
-
+            encodedLine = ShuffleCodewords(encodedLine);
 
             return encodedLine;
         }
 
+        public static string ShuffleCodewords(string encodedLine)
+        {
+            string[] data = encodedLine.Split('|')[0].Split(' ');
+            string[] correction = encodedLine.Split('|')[1].TrimEnd().Split(' ');
+            string result = string.Empty;
+            int i = 0;
+            while (data.Last() != "")
+            {
+                if (i >= data.Length) i = 0;
+                if (data[i] != "")
+                {
+                    result += data[i].Substring(0, 8);
+                    data[i] = data[i].Remove(0, 8);
+                }
+                i++;
+            }
+            while (correction.Last() != "")
+            {
+                if (i >= correction.Length) i = 0;
+                if (correction[i] != "")
+                {
+                    result += correction[i].Substring(0, 8);
+                    correction[i] = correction[i].Remove(0, 8);
+                }
+                i++;
+            }
+
+            return result;
+        }
 
         public static string CreateCorrectionByte(string encodedLine, int version, int correctionLevel)
         {
@@ -67,7 +96,7 @@ namespace QR
             byte[] Polynomial = Dicts.PolynomialDict(corrBytePerBlock);
             string[] blocks = encodedLine.Split(' ');
             byte[] newArr = default;
-
+            encodedLine += "|";
             for (int i = 0; i < blocks.Length; i++)
             {
                 correctionBytes = string.Empty;
@@ -108,15 +137,15 @@ namespace QR
                     }
                 }
 
-                Console.WriteLine($"Correction Bytes start of block {i+1} \n");
+                Console.WriteLine($"Correction Bytes start of block {i+1}");
                 for (int k = 0; k < corrBytePerBlock; k++)
                 {
-                    correctionBytes += $" {Convert.ToString(newArr[k], 2).PadLeft(8, '0')}";
+                    correctionBytes += $"{Convert.ToString(newArr[k], 2).PadLeft(8, '0')}";
 
                     Console.Write($" {Convert.ToString(newArr[k], 2).PadLeft(8, '0')}");
                 }
                 Console.WriteLine($"\nCorrection Bytes end of block {i+1}");
-
+                correctionBytes += " ";
                 encodedLine += correctionBytes;
             }
             return encodedLine;
@@ -238,6 +267,7 @@ namespace QR
             encodedLine = DivideBlocks(encodedLine, version, correctionLevel);
             encodedLine = CreateCorrectionByte(encodedLine, version, correctionLevel);
 
+            encodedLine = ShuffleCodewords(encodedLine);
 
             return encodedLine;
         }
@@ -267,6 +297,7 @@ namespace QR
             encodedLine = DivideBlocks(encodedLine, version, correctionLevel);
             encodedLine = CreateCorrectionByte(encodedLine, version, correctionLevel);
 
+            encodedLine = ShuffleCodewords(encodedLine);
 
             return encodedLine;
         }
@@ -319,6 +350,8 @@ namespace QR
             encodedLine = AddCodewords(encodedLine, version, correctionLevel);
             encodedLine = DivideBlocks(encodedLine, version, correctionLevel);
             encodedLine = CreateCorrectionByte(encodedLine, version, correctionLevel);
+
+            encodedLine = ShuffleCodewords(encodedLine);
 
             return encodedLine;
         }

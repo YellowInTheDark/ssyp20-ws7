@@ -7,7 +7,7 @@ namespace QR
 {
     class Matrix
     {
-        public static int[,] CreateMatrix(int version)
+        public static int[,] CreateMatrix(string encodedLine, int version)
         {
             int size = 21 + 4 * (version - 1);
             int[,] matrix = new int[size, size];
@@ -18,7 +18,7 @@ namespace QR
             matrix = AddSyncLine(matrix);
             matrix = AddVersion(matrix, version);
             matrix = AddMask(matrix);
-            matrix = AddData(matrix, version);
+            matrix = AddData(matrix, encodedLine, version);
 
             DisplayMatrix(matrix);
             return matrix;
@@ -40,6 +40,17 @@ namespace QR
 
         public static int[,] AddFinderPattern(int[,] matrix, int version, int x, int y)
         {
+
+            for (int i = -2; i < 9; i++)
+            {
+                for (int j = -2; j < 9; j++)
+                {
+                    if (x == matrix.GetLength(0) - 7 && y == 0 && j == -2) continue;
+                    if((y + i >= 0 && x + j >= 0) && (y + i < matrix.GetLength(0) && x + j < matrix.GetLength(0)))
+                    matrix[y + i, x + j] = -1;
+                }
+            }
+
             for (int i = 0; i < 7; i++)
             {
                 matrix[y, x + i] = 1;
@@ -59,6 +70,8 @@ namespace QR
                     matrix[y + 2 + i, x + 2 + j] = 1;
                 }
             }
+
+
 
             return matrix;
         }
@@ -92,9 +105,24 @@ namespace QR
                 if ((cordsArr[i, 0] == 6 && cordsArr[i, 1] + 7 >= matrix.GetLength(0)) ||
                     (cordsArr[i, 0] == 6 && cordsArr[i, 1] - 7 <= 0) ||
                     (cordsArr[i, 0] + 7 >= matrix.GetLength(0) && cordsArr[i, 1] - 7 <= 0)) continue;
-                matrix[cordsArr[i, 0], cordsArr[i, 1]] = 1;
+
                 int x = cordsArr[i, 0] - 2;
                 int y = cordsArr[i, 1] - 2;
+                for (int j = 0; j < 3; j++)
+                {
+                    matrix[y+1, x+1 + j] = -1;
+                    matrix[y + 3, x+1 + j] = -1;
+                }
+                for (int j = 0; j < 3; j++)
+                {
+                    matrix[y+1 + j, x+1] = -1;
+                    matrix[y+1 + j, x + 3] = -1;
+                }
+
+                matrix[cordsArr[i, 0], cordsArr[i, 1]] = 1;
+
+
+
                 for (int j = 0; j < 5; j++)
                 {
                     matrix[y, x + j] = 1;
@@ -123,8 +151,8 @@ namespace QR
                 }
                 else
                 {
-                    matrix[i, 6] = 0;
-                    matrix[6, i] = 0;
+                    matrix[i, 6] = -1;
+                    matrix[6, i] = -1;
                 }
             }
 
@@ -151,8 +179,8 @@ namespace QR
                         }
                         else
                         {
-                            matrix[size - 11 + i, j] = 0;
-                            matrix[j, size - 11 + i] = 0;
+                            matrix[size - 11 + i, j] = -1;
+                            matrix[j, size - 11 + i] = -1;
                         }
                     }
                 }
@@ -172,73 +200,54 @@ namespace QR
             return matrix;
         }
 
-        public static int[,] AddData(int[,] matrix, int version) // Наработки по укладке данных
+        
+
+        public static int[,] AddData(int[,] matrix, string encodedLine, int version) // Супер плохо
         {
-            //int size = matrix.GetLength(0);
-            //int x = size - 1;
-            //int y = size - 1;
+            int size = matrix.GetLength(0);
+            int x = size - 1;
+            int y = size - 1;
 
-            
-            //while (x >= size - (version >= 7 ? 12 : 8))
-            //{
-            //    y = size - 1;
-            //    for (int i = 0; i < size - 9; i++)
-            //    {
-                    
-            //        for (int j = 0; j < 2; j++)
-            //        {
-            //            x -= j;
-            //            matrix[y, x] = 1;
-            //        }
-            //        y -= 1;
-            //        x += 1;
-            //    }
-            //    x -= 2;
-            //    y += 1;
-            //    for (int i = y; i < size; i++)
-            //    {
-            //        for (int j = 0; j < 2; j++)
-            //        {
-            //            x -= j;
-            //            matrix[y, x] = 1;
-            //        }
-            //        y += 1;
-            //        x += 1;
-            //    }
-            //    x -= 2;
+            while (x > 0)
+            {
+                GoUpwards(matrix, size, x, y);
+                x -= 2;
+                GoDownwards(matrix, size, x, y);
+                x -= 2;
 
-            //}
+            }
+            Console.WriteLine(matrix[9, 0]);
+            static void GoUpwards(int[,] matrix, int size, int x, int y)
+            {
+                while (y >= 0)
+                {
+                    for (int j = 0; j < 2; j++)
+                    {
+                        x -= j;
+                        if (matrix[y, x] == 1 || matrix[y, x] == -1) continue; // Все служебные белые клетки должны стать -1 
+                        matrix[y, x] = 1;
+                    }
+                    y -= 1;
+                    x += 1;
+                }
+            }
 
-            //while (x >= 10)
-            //{
-            //    x += 1;
-            //    y = size - 1;
-            //    for (int i = 0; i < size; i++)
-            //    {
+            static void GoDownwards(int[,] matrix, int size, int x, int y)
+            {
+                y = 0;
+                while (y < size) 
+                {
+                    for (int j = 0; j < 2; j++)
+                    {
+                        x -= j;
+                        if (matrix[y, x] == 1 || matrix[y, x] == -1) continue;
+                        matrix[y, x] = 1;
+                    }
+                    y += 1;
+                    x += 1;
+                }
 
-            //        for (int j = 0; j < 2; j++)
-            //        {
-            //            x -= j;
-            //            matrix[y, x] = 1;
-            //        }
-            //        y -= 1;
-            //        x += 1;
-            //    }
-            //    x -= 2;
-            //    y += 1;
-            //    for (int i = y; i < size; i++)
-            //    {
-            //        for (int j = 0; j < 2; j++)
-            //        {
-            //            x -= j;
-            //            matrix[y, x] = 1;
-            //        }
-            //        y += 1;
-            //        x += 1;
-            //    }
-            //    x -= 2;
-            //}
-
+            }
 
             return matrix;
         } 
