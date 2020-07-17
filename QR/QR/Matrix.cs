@@ -51,7 +51,9 @@ namespace QR
                 for (int j = -2; j < 9; j++)
                 {
                     if (x == matrix.GetLength(0) - 7 && y == 0 && j == -2) continue;
-                    if((y + i >= 0 && x + j >= 0) && (y + i < matrix.GetLength(0) && x + j < matrix.GetLength(0)))
+                    if (x == 0 && y == matrix.GetLength(0) - 7 && i == -2) continue;
+
+                    if ((y + i >= 0 && x + j >= 0) && (y + i < matrix.GetLength(0) && x + j < matrix.GetLength(0)))
                     matrix[y + i, x + j] = -1;
                 }
             }
@@ -252,14 +254,15 @@ namespace QR
 
             while (x >= 0)
             {
-                GoUpwards(matrix, data, size, x, y, mask);
+                data = GoUpwards(matrix, data, size, x, y, mask);
                 x -= 2;
-                GoDownwards(matrix, data, size, x, y, mask);
+                if (x == 6) x -= 1;
+                data = GoDownwards(matrix, data, size, x, y, mask);
                 x -= 2;
 
             }
             Console.WriteLine(matrix[9, 0]);
-            static void GoUpwards(int[,] matrix, string data, int size, int x, int y, int mask)
+            static string GoUpwards(int[,] matrix, string data, int size, int x, int y, int mask)
             {
                 while (y >= 0)
                 {
@@ -269,6 +272,11 @@ namespace QR
                         if (x < 0) break;
                         if (matrix[y, x] == 1 || matrix[y, x] == -1) continue; // Все служебные белые клетки должны стать -1 
 
+                        if (data.Length == 0)
+                        {
+                            matrix[y, x] = 0;
+                            continue;
+                        }
                         if (data[0] == '1') matrix[y, x] = 1;
                         data = data.Remove(0, 1);
 
@@ -280,15 +288,18 @@ namespace QR
 
                         //matrix[y, x] = 1;
                         //DisplayMatrix(matrix);
-                        //Thread.Sleep(500);
+                        //Thread.Sleep(15);
 
                     }
                     y -= 1;
                     x += 1;
                 }
+                if (x == 5) x -= 1;
+
+                return data;
             }
 
-            static void GoDownwards(int[,] matrix, string data, int size, int x, int y, int mask)
+            static string GoDownwards(int[,] matrix, string data, int size, int x, int y, int mask)
             {
                 y = 0;
                 while (y < size) 
@@ -297,8 +308,14 @@ namespace QR
                     {
                         x -= j;
                         if (x < 0) break;
+
                         if (matrix[y, x] == 1 || matrix[y, x] == -1) continue;
 
+                        if (data.Length == 0)
+                        {
+                            matrix[y, x] = 0;
+                            continue;
+                        }
                         if (data[0] == '1') matrix[y, x] = 1;
                         data = data.Remove(0, 1);
 
@@ -310,13 +327,13 @@ namespace QR
 
                         //matrix[y, x] = 1;
                         //DisplayMatrix(matrix);
-                        //Thread.Sleep(500);
+                        //Thread.Sleep(15);
 
                     }
                     y += 1;
                     x += 1;
                 }
-
+                return data;
             }
 
             return matrix;
