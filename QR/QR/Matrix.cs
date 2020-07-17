@@ -204,35 +204,40 @@ namespace QR
 
         public static int[,] AddData(int[,] matrix, string encodedLine, int version) // Супер плохо
         {
+            string data = encodedLine;
             int size = matrix.GetLength(0);
             int x = size - 1;
             int y = size - 1;
 
-            while (x > 0)
+            while (x >= 0)
             {
-                GoUpwards(matrix, size, x, y);
+                GoUpwards(matrix, data, size, x, y);
                 x -= 2;
-                GoDownwards(matrix, size, x, y);
+                GoDownwards(matrix, data, size, x, y);
                 x -= 2;
 
             }
             Console.WriteLine(matrix[9, 0]);
-            static void GoUpwards(int[,] matrix, int size, int x, int y)
+            static void GoUpwards(int[,] matrix, string data, int size, int x, int y)
             {
                 while (y >= 0)
                 {
                     for (int j = 0; j < 2; j++)
                     {
                         x -= j;
+                        if (x < 0) break;
                         if (matrix[y, x] == 1 || matrix[y, x] == -1) continue; // Все служебные белые клетки должны стать -1 
-                        matrix[y, x] = 1;
+                        
+                        if(data[0] == '1') matrix[y, x] = 1;
+                        data = data.Remove(0, 1);
+
                     }
                     y -= 1;
                     x += 1;
                 }
             }
 
-            static void GoDownwards(int[,] matrix, int size, int x, int y)
+            static void GoDownwards(int[,] matrix, string data, int size, int x, int y)
             {
                 y = 0;
                 while (y < size) 
@@ -240,8 +245,11 @@ namespace QR
                     for (int j = 0; j < 2; j++)
                     {
                         x -= j;
+                        if (x < 0) break;
                         if (matrix[y, x] == 1 || matrix[y, x] == -1) continue;
-                        matrix[y, x] = 1;
+
+                        if (data[0] == '1') matrix[y, x] = 1;
+                        data = data.Remove(0, 1);
                     }
                     y += 1;
                     x += 1;
