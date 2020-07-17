@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace QR
 {
@@ -17,8 +18,8 @@ namespace QR
             matrix = AddAlignment(matrix, version);
             matrix = AddSyncLine(matrix);
             matrix = AddVersion(matrix, version);
+            matrix = AddData(matrix, encodedLine, correctionLevel, 0); // ПОСЛЕДНИЙ АРГУМЕНТ НУЖНО ПОМЕНЯТЬ В ЗАВИСИМОСТИ ОТ ТОГО, КАКАЯ МАСКА ПОДХОДИТ.
             matrix = AddMask(matrix, correctionLevel);
-            matrix = AddData(matrix, encodedLine, version);
 
             DisplayMatrix(matrix);
             return matrix;
@@ -26,8 +27,11 @@ namespace QR
 
         public static void DisplayMatrix(int[,] matrix)
         {
+            Console.Write("\n\n\n\n");
+
             for (int i = 0; i < matrix.GetLength(0); i++)
             {
+                Console.Write("        ");
                 for (int j = 0; j < matrix.GetLength(0); j++)
                 {
                     if (matrix[i, j] == 1) Console.Write("██"); //
@@ -36,6 +40,7 @@ namespace QR
                 }
                 Console.WriteLine();
             }
+            Console.Write("\n\n\n\n");
         }
 
         public static int[,] AddFinderPattern(int[,] matrix, int version, int x, int y)
@@ -238,7 +243,7 @@ namespace QR
 
         
 
-        public static int[,] AddData(int[,] matrix, string encodedLine, int version) // Супер плохо
+        public static int[,] AddData(int[,] matrix, string encodedLine, int correctionLevel, int mask)
         {
             string data = encodedLine;
             int size = matrix.GetLength(0);
@@ -247,14 +252,14 @@ namespace QR
 
             while (x >= 0)
             {
-                GoUpwards(matrix, data, size, x, y);
+                GoUpwards(matrix, data, size, x, y, mask);
                 x -= 2;
-                GoDownwards(matrix, data, size, x, y);
+                GoDownwards(matrix, data, size, x, y, mask);
                 x -= 2;
 
             }
             Console.WriteLine(matrix[9, 0]);
-            static void GoUpwards(int[,] matrix, string data, int size, int x, int y)
+            static void GoUpwards(int[,] matrix, string data, int size, int x, int y, int mask)
             {
                 while (y >= 0)
                 {
@@ -263,9 +268,19 @@ namespace QR
                         x -= j;
                         if (x < 0) break;
                         if (matrix[y, x] == 1 || matrix[y, x] == -1) continue; // Все служебные белые клетки должны стать -1 
-                        
-                        if(data[0] == '1') matrix[y, x] = 1;
+
+                        if (data[0] == '1') matrix[y, x] = 1;
                         data = data.Remove(0, 1);
+
+                        if (Dicts.Mask(mask, x, y) == 0)
+                        {
+                            if (matrix[y, x] == 0) matrix[y, x] = 1;
+                            else matrix[y, x] = 0;
+                        } // Убрать коментарии, чтобы вернуть всё на место
+
+                        //matrix[y, x] = 1;
+                        //DisplayMatrix(matrix);
+                        //Thread.Sleep(500);
 
                     }
                     y -= 1;
@@ -273,7 +288,7 @@ namespace QR
                 }
             }
 
-            static void GoDownwards(int[,] matrix, string data, int size, int x, int y)
+            static void GoDownwards(int[,] matrix, string data, int size, int x, int y, int mask)
             {
                 y = 0;
                 while (y < size) 
@@ -286,6 +301,17 @@ namespace QR
 
                         if (data[0] == '1') matrix[y, x] = 1;
                         data = data.Remove(0, 1);
+
+                        if (Dicts.Mask(mask, x, y) == 0)
+                        {
+                            if (matrix[y, x] == 0) matrix[y, x] = 1;
+                            else matrix[y, x] = 0;
+                        }
+
+                        //matrix[y, x] = 1;
+                        //DisplayMatrix(matrix);
+                        //Thread.Sleep(500);
+
                     }
                     y += 1;
                     x += 1;

@@ -48,7 +48,6 @@ namespace QR
             }
             Matrix.CreateMatrix(encodedLine, version, correctionLevel);
             // Нужно подумать над тем, чтобы передавать не версию и уровень исправления, а просто количество бит.q
-
         }
 
         public int[,] ReadCorrection()

@@ -82,6 +82,23 @@ namespace QR
 
         }
 
+        public static int Mask(int keyValue, int x, int y)
+        {
+            Dictionary<int, int> PD = new Dictionary<int, int>
+            {
+                { 0, (x+y) % 2},
+                { 1, (y % 2) },
+                { 2, (x % 3) },
+                { 3, (x+y) % 3 },
+                { 4, (x/3 + y/2) % 2 },
+                { 5, (x*y) % 2 + (x*y) % 3 },
+                { 6, ((x*y) % 2 + (x*y) % 3) % 2 },
+                { 7, ((x*y) % 3 + (x+y) % 2) % 2 },
+            };
+            return PD[keyValue];
+
+        }
+
     }
 
 }
