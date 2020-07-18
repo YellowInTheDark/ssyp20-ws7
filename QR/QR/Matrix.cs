@@ -12,17 +12,199 @@ namespace QR
         {
             int size = 21 + 4 * (version - 1);
             int[,] matrix = new int[size, size];
+            int mask = PickBestMask(encodedLine, version, correctionLevel);
             matrix = AddFinderPattern(matrix, version, 0, 0);
             matrix = AddFinderPattern(matrix, version, 0, size - 7);
             matrix = AddFinderPattern(matrix, version, size - 7, 0);
             matrix = AddAlignment(matrix, version);
             matrix = AddSyncLine(matrix);
             matrix = AddVersion(matrix, version);
-            matrix = AddData(matrix, encodedLine, correctionLevel, 0); // ПОСЛЕДНИЙ АРГУМЕНТ НУЖНО ПОМЕНЯТЬ В ЗАВИСИМОСТИ ОТ ТОГО, КАКАЯ МАСКА ПОДХОДИТ.
-            matrix = AddMask(matrix, correctionLevel);
+            matrix = AddData(matrix, encodedLine, correctionLevel, mask); // ПОСЛЕДНИЙ АРГУМЕНТ НУЖНО ПОМЕНЯТЬ В ЗАВИСИМОСТИ ОТ ТОГО, КАКАЯ МАСКА ПОДХОДИТ.
+            matrix = AddMask(matrix, correctionLevel, mask);
+
+            Console.WriteLine($"BEST MASK - {mask}");
 
             DisplayMatrix(matrix);
             return matrix;
+        }
+
+        public static int PickBestMask(string encodedLine, int version, int correctionLevel)
+        {
+            int mask = 0;
+            int[] penaltySum = new int[8];
+            for (int m = 0; m < 8; m++)
+            {
+                mask = m;
+                int size = 21 + 4 * (version - 1);
+                int[,] matrix = new int[size, size];
+                matrix = AddFinderPattern(matrix, version, 0, 0);
+                matrix = AddFinderPattern(matrix, version, 0, size - 7);
+                matrix = AddFinderPattern(matrix, version, size - 7, 0);
+                matrix = AddAlignment(matrix, version);
+                matrix = AddSyncLine(matrix);
+                matrix = AddVersion(matrix, version);
+                matrix = AddData(matrix, encodedLine, correctionLevel, mask); // ПОСЛЕДНИЙ АРГУМЕНТ НУЖНО ПОМЕНЯТЬ В ЗАВИСИМОСТИ ОТ ТОГО, КАКАЯ МАСКА ПОДХОДИТ.
+                matrix = AddMask(matrix, correctionLevel, mask);
+
+                int[] Penalty = { 0, 0, 0, 0 };
+
+                for (int i = 0; i < size; i++) // replacing all -1 to 0
+                {
+                    for (int j = 0; j < size; j++)
+                    {
+                        if (matrix[i, j] == -1) matrix[i, j] = 0;
+                    }
+                }
+
+                for (int c = 0; c < 2; c++)
+                {
+                    int rowX = 0; // Finds all horizontal lines of same color modules (each at least 5 long)
+                    for (int i = 0; i < size; i++)
+                    {
+                        for (int j = 0; j < size; j++)
+                        {
+                            if (matrix[i, j] == 1 - c)
+                            {
+                                rowX++;
+                                //matrix[i, j] = 10;
+                                //DisplayMatrix(matrix);
+                                //Console.WriteLine($"ROWX = {rowX}");
+                                //Thread.Sleep(350);
+
+                            }
+                            else if (rowX >= 5)
+                            {
+                                Penalty[0] += rowX - 2;
+                                rowX = 0;
+                            }
+                            else
+                            {
+                                rowX = 0;
+                            }
+                        }
+                        if (rowX >= 5)
+                        {
+                            Penalty[0] += rowX - 2;
+                            rowX = 0;
+                        }
+                        else rowX = 0;
+                    }
+                    int rowY = 0; // Finds vertical lines of same color modules (each at least 5 long)
+                    for (int i = 0; i < size; i++)
+                    {
+                        for (int j = 0; j < size; j++)
+                        {
+                            if (matrix[j, i] == 1 - c)
+                            {
+                                rowY++;
+                                //matrix[j, i] = 10;
+                                //DisplayMatrix(matrix);
+                                //Console.WriteLine($"ROWY = {rowY}");
+                                //Thread.Sleep(350);
+                            }
+                            else if (rowY >= 5)
+                            {
+                                Penalty[0] += rowY - 2;
+                                rowY = 0;
+                            }
+                            else
+                            {
+                                rowY = 0;
+                            }
+
+                        }
+                        if (rowY >= 5)
+                        {
+                            Penalty[0] += rowY - 2;
+                            rowY = 0;
+                        }
+                        else rowY = 0;
+                    }
+                }
+
+                // Finds 2x2 boxes of same color modules
+                for (int i = 0; i < size - 1; i++)
+                {
+                    for (int j = 0; j < size - 1; j++)
+                    {
+                        if (matrix[i, j] == matrix[i, j + 1] && matrix[i, j] == matrix[i + 1, j] && matrix[i, j] == matrix[i + 1, j + 1]) Penalty[1] += 3;
+                    }
+                }
+
+                // Finds horizontal finder-like patterns
+                for (int i = 0; i < size; i++)
+                {
+                    for (int j = 0; j < size - 7; j++)
+                    {
+                        if (matrix[i, j] == 1 && matrix[i, j + 1] == 0 && matrix[i, j + 2] == 1 && matrix[i, j + 3] == 1 && matrix[i, j + 4] == 1 && matrix[i, j + 5] == 0 && matrix[i, j + 6] == 1)
+                        {
+                            if (j >= 4)
+                            {
+                                if (matrix[i, j - 1] == 0 && matrix[i, j - 2] == 0 && matrix[i, j - 3] == 0 && matrix[i, j - 4] == 0)
+                                {
+                                    Penalty[2] += 40;
+                                }
+                            }
+                            if (j <= size - 11)
+                            {
+                                if (matrix[i, j + 6 + 1] == 0 && matrix[i, j + 6 + 2] == 0 && matrix[i, j + 6 + 3] == 0 && matrix[i, j + 6 + 4] == 0)
+                                {
+                                    Penalty[2] += 40;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Finds vertical finder-like patterns:
+                for (int j = 0; j < size; j++) // j and i swapped: j = x, i = y
+                {
+                    for (int i = 0; i < size - 7; i++)
+                    {
+                        if (matrix[i, j] == 1 && matrix[i + 1, j] == 0 && matrix[i + 2, j] == 1 && matrix[i + 3, j] == 1 && matrix[i + 4, j] == 1 && matrix[i + 5, j] == 0 && matrix[i + 6, j] == 1)
+                        {
+                            if (i >= 4)
+                            {
+                                if (matrix[i - 1, j] == 0 && matrix[i - 2, j] == 0 && matrix[i - 3, j] == 0 && matrix[i - 4, j] == 0)
+                                {
+                                    Penalty[2] += 40;
+                                }
+                            }
+                            if (i <= size - 11)
+                            {
+                                if (matrix[i + 6 + 1, j] == 0 && matrix[i + 6 + 2, j] == 0 && matrix[i + 6 + 3, j] == 0 && matrix[i + 6 + 4, j] == 0)
+                                {
+                                    Penalty[2] += 40;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Calculates balance
+                int black = 0;
+                for (int i = 0; i < size; i++)
+                {
+                    for (int j = 0; j < size; j++)
+                    {
+                        if (matrix[i, j] == 1) black++;
+                    }
+                }
+                float proportion = black / (float)(size * size);
+                if (proportion < 0.45)
+                {
+                    Penalty[3] += (int)(0.45 - proportion) * 100 / 5 * 10;
+                }
+                else if (proportion > 0.55)
+                {
+                    Penalty[3] += (int)(proportion - 0.55) * 100 / 5 * 10;
+                }
+
+                penaltySum[m] = Penalty.Sum();
+                Console.WriteLine($"Mask {mask} penalty: Sum: {penaltySum[m]}\nLines = {Penalty[0]} | Boxes = {Penalty[1]} | 1:1:3:1:1 = {Penalty[2]} | Proportion = {Penalty[3]}");
+            }
+            mask = penaltySum.ToList().IndexOf(penaltySum.Max());
+            return mask;
         }
 
         public static void DisplayMatrix(int[,] matrix)
@@ -35,6 +217,7 @@ namespace QR
                 for (int j = 0; j < matrix.GetLength(0); j++)
                 {
                     if (matrix[i, j] == 1) Console.Write("██"); //
+                    else if (matrix[i, j] == 10) Console.Write("!!");
                     else Console.Write("  "); // "  "
                     //Console.Write($"{matrix[i, j]} ");
                 }
@@ -196,39 +379,39 @@ namespace QR
             return matrix;
         }
 
-        public static int[,] AddMask(int[,] matrix, int correctionLevel)
+        public static int[,] AddMask(int[,] matrix, int correctionLevel, int mask)
         {
             MainClass main = new MainClass();
             string[,] maskArr = new string[4, 8];
             maskArr = main.ReadMaskCode();
-            string mask = maskArr[correctionLevel - 1, 0]; // ЗАМЕНИТЬ 0 НА НЕОБХОДИМЫЙ НОМЕР ПОСЛЕ ВЫЧИСЛЕНИЯ ОПТИМАЛЬНОЙ
+            string maskStr = maskArr[correctionLevel - 1, mask]; // ЗАМЕНИТЬ 0 НА НЕОБХОДИМЫЙ НОМЕР ПОСЛЕ ВЫЧИСЛЕНИЯ ОПТИМАЛЬНОЙ
             int size = matrix.GetLength(0);
             // Левый поисковой модуль
             for (int i = 0; i < 6; i++)
             {
-                if (mask[i] == '1') matrix[8, i] = 1;
+                if (maskStr[i] == '1') matrix[8, i] = 1;
                 else matrix[8, i] = -1;
             }
 
             for (int i = 0; i < 2; i++)
             {
-                if (mask[6+i] == '1') matrix[8, 7+i] = 1;
+                if (maskStr[6+i] == '1') matrix[8, 7+i] = 1;
                 else matrix[8, 7+i] = -1;
             }
 
-            if (mask[8] == '1') matrix[7, 8] = 1;
+            if (maskStr[8] == '1') matrix[7, 8] = 1;
             else matrix[7, 8] = -1;
 
             for (int i = 0; i < 6; i++)
             {
-                if (mask[9 + i] == '1') matrix[5-i, 8] = 1;
+                if (maskStr[9 + i] == '1') matrix[5-i, 8] = 1;
                 else matrix[5-i, 8] = -1;
             }
 
             // Нижний поисковой модуль
             for (int i = 0; i < 7; i++)
             {
-                if (mask[i] == '1') matrix[size - 1 - i, 8] = 1;
+                if (maskStr[i] == '1') matrix[size - 1 - i, 8] = 1;
                 else matrix[size - 1 - i, 8] = -1;
             }
             matrix[size - 8, 8] = 1;
@@ -236,7 +419,7 @@ namespace QR
             // Правый поисковой модуль
             for (int i = 0; i < 8; i++)
             {
-                if (mask[7+i] == '1') matrix[8, size - 8 + i] = 1;
+                if (maskStr[7+i] == '1') matrix[8, size - 8 + i] = 1;
                 else matrix[8, size - 8 + i] = -1;
             }
 
@@ -261,7 +444,6 @@ namespace QR
                 x -= 2;
 
             }
-            Console.WriteLine(matrix[9, 0]);
             static string GoUpwards(int[,] matrix, string data, int size, int x, int y, int mask)
             {
                 while (y >= 0)
