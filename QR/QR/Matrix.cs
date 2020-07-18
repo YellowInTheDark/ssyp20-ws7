@@ -203,7 +203,7 @@ namespace QR
                 penaltySum[m] = Penalty.Sum();
                 Console.WriteLine($"Mask {mask} penalty: Sum: {penaltySum[m]}\nLines = {Penalty[0]} | Boxes = {Penalty[1]} | 1:1:3:1:1 = {Penalty[2]} | Proportion = {Penalty[3]}");
             }
-            mask = penaltySum.ToList().IndexOf(penaltySum.Max());
+            mask = penaltySum.ToList().IndexOf(penaltySum.Min());
             return mask;
         }
 
