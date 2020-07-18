@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -12,7 +13,11 @@ namespace QR
 
         static void Main()
         {
-            
+            int c = (byte)((255 % 255 + 1 % 255) % 255);
+            byte b = (byte)((255 % 255 + 1 % 255) % 255);
+            Console.WriteLine(11^17);
+            Console.WriteLine(b);
+
             string input = Console.ReadLine();
             byte[] bytes = UTF8Encoding.UTF8.GetBytes(input);
             
@@ -70,12 +75,12 @@ namespace QR
                     else
                     {
                         Console.WriteLine($"String length in binary system: {LODA}");
-                        Console.WriteLine($"Max value for current Method and version: {maxValues[i]}");
+                        Console.WriteLine($"Max value for current Method and version {i+1}: {maxValues[i]}");
                         updateData = encodingMethod + LODA + data;
                         updateData = filling(updateData, int.Parse(maxValues[i]));
                         updateData = DivisionIntoBlocks(updateData, int.Parse(maxValues[i]), i, correctionLevel);
                         string matrix = GenerateMatrix(i+1, correctionLevel);
-
+                        updateData = LastAlgorithm(updateData, correctionLevel,i);
                         break;
                     }
 
@@ -266,6 +271,25 @@ namespace QR
                         }
                     }
                 }
+                char[] versionCode = File.ReadLines("versionCode.txt").ElementAt(version - 1).ToCharArray();
+                
+                for (var i = 0; i < 3; i++)
+                {
+                    for (var j = 0; j < 6; j++)
+                    {
+                        if (Convert.ToInt32(versionCode[6 * i + j]) == 48)
+                        {
+                            matrix[size - 11 + i, j] = 0;
+                            matrix[j, size - 11 + i] = 0;
+                        }
+                        else
+                        {
+                            matrix[size - 11 + i, j] = 1;
+                            matrix[j, size - 11 + i] = 1;
+                        }
+
+                    }
+                }
             }
             int l = 2;
             for (int i = 7; i < size - 7; i++)
@@ -300,6 +324,120 @@ namespace QR
             return d;
 
         
+        }
+
+
+        static string LastAlgorithm(string data, int correctionLevel, int version)// версия минус один
+        {
+            var data2 = data;
+            string[] CountOfBlocks = File.ReadLines("versionsBlocks.txt").ElementAt(correctionLevel - 1).Split();
+            var NumberOfBlocks = int.Parse(CountOfBlocks[version]);
+            string[] CountOfCorrectionBytes = File.ReadLines("NumberOfCorrectionBytersPerBlock.txt").ElementAt(correctionLevel - 1).Split();
+            var NumberOfCorrectionBytes = int.Parse(CountOfCorrectionBytes[version]);
+            string[] ArrayCorrectionBytes = new string[NumberOfBlocks* NumberOfCorrectionBytes];
+
+            var nb = 1;
+            for (var i = 0; i < NumberOfBlocks; i++)
+            {
+                string block;
+                if (data2.IndexOf(' ') == -1)
+                    block = data2;
+                else
+                    block = data2.Remove(data2.IndexOf(' '));
+                int[] bytes = new int[block.Length/8];
+                var j = 0;
+                while (block.Length != 0)
+                { 
+                if (block.Length == 8)
+                        bytes[j] = Convert.ToInt32(block, 2);
+                else
+                        bytes[j] = Convert.ToInt32(block.Remove(8), 2);
+                    block = block.Remove(0, 8);
+                    j++;
+                }
+                var g = NumberOfCorrectionBytes;
+                if (bytes.Length > NumberOfCorrectionBytes)
+                    g = bytes.Length;
+                int[] BArray = new int[g];
+                for (j = 0; j < bytes.Length; j++)
+                {
+                    BArray[j] = bytes[j];
+                }
+                int[] arrayOfCorrectionBytes = AllDictionaries.PolynomialDict(NumberOfCorrectionBytes);
+                //foreach (var item in arrayOfCorrectionBytes)
+                //    Console.Write(item + " ");
+               // Console.WriteLine();
+               // foreach (var item in BArray)
+                //    Console.Write(item + " ");
+               // Console.WriteLine();
+
+
+
+
+                for (int h = 0; h < bytes.Length; h++)
+                {
+                   // Console.WriteLine(BArray[0]);
+                    var firstItem = int.Parse(File.ReadLines("ReverseTable.txt").ElementAt(BArray[0]));
+
+                    for (int b = 0; b < g-1; b++)
+
+                    {
+                        BArray[b] = BArray[b + 1];
+                    }
+                    BArray[g - 1] = 0;
+                   // foreach (var item in BArray)
+                    //    Console.Write(item + " ");
+                   // Console.WriteLine(firstItem);
+
+
+
+                    if (firstItem == -1)
+                        continue;
+                    var B = 0;
+                    for (int b = 0; b < NumberOfCorrectionBytes; b++)
+                    {
+                        B = arrayOfCorrectionBytes[b] + firstItem;
+                        if (B > 254)
+                            B = B % 255;
+                        B = int.Parse(File.ReadLines("Table.txt").ElementAt(B));
+                        B = B ^ BArray[b];
+                        BArray[b] = B;
+                        //if (arrayOfCorrectionBytes[b] == 0)
+                        //    arrayOfCorrectionBytes[b] = 255;
+                        // Console.WriteLine(arrayOfCorrectionBytes[b] + " ");
+
+                        //Console.WriteLine(arrayOfCorrectionBytes[b]);
+                        //arrayOfCorrectionBytes[b] = int.Parse(File.ReadLines("Table.txt").ElementAt(arrayOfCorrectionBytes[b]));
+                        //Console.WriteLine(arrayOfCorrectionBytes[b]);
+
+                        //Console.WriteLine($"{arrayOfCorrectionBytes[b]} {BArray[b]} {arrayOfCorrectionBytes[b] ^ BArray[b]} ");
+                        //arrayOfCorrectionBytes[b] = arrayOfCorrectionBytes[b] ^ BArray[b];
+                        //Console.WriteLine(arrayOfCorrectionBytes[b]);
+                    }
+                    
+                }
+                string y;
+                
+                for (var item = 1; item<= NumberOfCorrectionBytes; item++)
+                {
+                    var f  = Convert.ToString(BArray[item-1], 2);
+                    f = f.PadLeft(8, '0');
+
+                    ArrayCorrectionBytes[item*nb-1] = f;
+                }
+                
+                data2 = data2.Remove(0, data2.IndexOf(' ')+1);
+                nb++;
+            }
+            foreach (var item in ArrayCorrectionBytes)
+                Console.Write(item + " ");
+            while (data.Length > 0)
+            {
+                data2 = 
+            }
+             
+
+            return data;
         }
 
     }
