@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,10 +12,21 @@ namespace QR
         {
             Console.WriteLine("Write string to encode");
             string input = Console.ReadLine();
-            Console.WriteLine("Choose error correction level: \n 1 - L(7%) | 2 - M(15%) | 3 - Q(25%) | 4 - H(30%)");
-            if (!int.TryParse(Console.ReadLine(), out int correctionLevel) || correctionLevel < 1 || correctionLevel > 4)
+            Console.WriteLine("Add logo? (y/N): ");
+            bool withLogo = false;
+            int correctionLevel = 0;
+            if (Console.ReadLine().ToLower() == "y")
             {
-                throw new Exception("Correction level must be number from 1 to 4");
+                withLogo = true;
+                correctionLevel = 4;
+            }
+            else
+            {
+                Console.WriteLine("Choose error correction level: \n 1 - L(7%) | 2 - M(15%) | 3 - Q(25%) | 4 - H(30%)");
+                if (!int.TryParse(Console.ReadLine(), out correctionLevel) || correctionLevel < 1 || correctionLevel > 4)
+                {
+                    throw new Exception("Correction level must be number from 1 to 4");
+                }
             }
             //input = "ሐ`"; // СТРОКА ДЛЯ ТЕСТА
             byte[] bytes = UTF8Encoding.UTF8.GetBytes(input);
@@ -48,7 +60,11 @@ namespace QR
             }
             int[,] matrix = Matrix.CreateMatrix(encodedLine, version, correctionLevel);
 
-            Save.RequestImageSave(matrix);
+            if (withLogo)
+            {
+                Save.SaveWithLogo(matrix);
+            }
+            else Save.RequestImageSave(matrix);
         }
 
 
