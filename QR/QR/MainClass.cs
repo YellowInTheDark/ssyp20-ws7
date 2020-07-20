@@ -46,9 +46,13 @@ namespace QR
                 encodedLine = Encoding.EncodeByte(input, version, correctionLevel);
                 Console.WriteLine(encodedLine);
             }
-            Matrix.CreateMatrix(encodedLine, version, correctionLevel);
-            // Нужно подумать над тем, чтобы передавать не версию и уровень исправления, а просто количество бит.q
+            int[,] matrix = Matrix.CreateMatrix(encodedLine, version, correctionLevel);
+
+            Save.RequestImageSave(matrix);
         }
+
+
+
 
         public int[,] ReadCorrection()
         {
