@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace QR_testing_tools
+namespace QRTestingTools.Symbol.Data
 {
     class SegmentDecoder
     {
@@ -14,10 +14,11 @@ namespace QR_testing_tools
         /// <param name="bitArray">Span of bits to be decoded</param>
         /// <param name="codeVersion">QR Code version from 1 to 40</param>
         /// <returns>List of successfully decoded segments</returns>
-        public static List<Segment> DecodeAllSegments(ReadOnlySpan<byte> bitArray, int codeVersion)
+        public static List<Segment> DecodeAllSegments(QRSymbol symbol)
         {
+            var bitArray = symbol.Data;
             List<Segment> segments = new List<Segment>();
-            while (TryDecodeFirstSegment(bitArray, codeVersion, out Segment segment, out int bitsRead))
+            while (TryDecodeFirstSegment(bitArray.Span, symbol.VersionInfo.Version, out Segment segment, out int bitsRead))
             {
                 segments.Add(segment);
                 bitArray = bitArray.Slice(bitsRead);
@@ -143,12 +144,13 @@ namespace QR_testing_tools
                                 {
                                     0 => 0,
                                     1 => 4,
-                                    2 => 7
+                                    2 => 7,
+                                    _ => throw new Exception("wtf")
                                 },
                 SegmentMode.Alphanumeric => 11 * (count / 2) + 6 * (count % 2),
                 SegmentMode.Byte => 8 * count,
                 SegmentMode.Kanji => 13 * count,
-                _ => throw new Exception()
+                _ => throw new Exception($"Can't calculate bit count for: {mode}")
             };
         }
 
@@ -161,7 +163,8 @@ namespace QR_testing_tools
         {
             return (codeVersion, mode) switch
             {
-                (_, _) when codeVersion <= 0 => throw new Exception(),
+                (_, _) when codeVersion <= 0 => throw new Exception($"Code version can't be less than 0. Given version: {codeVersion}"),
+                (_, _) when codeVersion > 40 => throw new Exception($"Code version can't be greater than 40. Given version: {codeVersion}"),
                 (_, SegmentMode.Numeric) when codeVersion <= 9 => 10,
                 (_, SegmentMode.Numeric) when codeVersion <= 26 => 12,
                 (_, SegmentMode.Numeric) when codeVersion <= 40 => 14,
@@ -174,7 +177,7 @@ namespace QR_testing_tools
                 (_, SegmentMode.Kanji) when codeVersion <= 9 => 8,
                 (_, SegmentMode.Kanji) when codeVersion <= 26 => 10,
                 (_, SegmentMode.Kanji) when codeVersion <= 40 => 12,
-                _ => throw new Exception()
+                _ => throw new Exception($"Can't get count indicator length for version: {codeVersion} and mode: {mode}")
             };
         }
 

@@ -1,4 +1,4 @@
-﻿namespace QR_testing_tools
+﻿namespace QRTestingTools.Symbol.Data
 {
     struct Segment
     {
