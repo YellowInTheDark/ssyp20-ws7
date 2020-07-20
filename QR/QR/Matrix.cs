@@ -278,7 +278,7 @@ namespace QR
             }
             int[,] cordsArr = new int[cords.Length * cords.Length, 2];
             int length = cords.Count(e => e != 0);
-            for (int i = 0; i < (cords.Length * cords.Length); i++)
+            for (int i = 0; i < cords.Length; i++)
             {
                 if (cords[i] == 0) break;
                 for (int j = 0; j < cords.Length; j++)

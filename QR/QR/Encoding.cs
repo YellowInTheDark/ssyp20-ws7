@@ -316,9 +316,9 @@ namespace QR
             string encodedLine = string.Empty;
             for (int i = 0; i < bytes.Length; i += 2)
             {
-                ushort group = BitConverter.ToUInt16(new byte[2] { (byte)bytes[i], (byte)bytes[i + 1] }, 0);
+                ushort group = (ushort)((int)(bytes[i] << 8) | (int)bytes[i + 1]);
 
-                if (group >= 33088 || group <= 40956)
+                if (group >= 33088 && group <= 40956)
                 {
                     group -= 0x8140;
                     byte HighByte = (byte)(group >> 8);
@@ -327,7 +327,7 @@ namespace QR
                     result += LowByte;
                     encodedLine += $"{Convert.ToString(result, 2).PadLeft(13, '0')} ";
                 }
-                else if (group >= 57408 || group <= 60351)
+                else if (group >= 57408 && group <= 60351)
                 {
                     group -= 0xC140;
                     byte HighByte = (byte)(group >> 8);
