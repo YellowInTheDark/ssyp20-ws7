@@ -7,6 +7,51 @@ namespace QR
 {
     class Encoding
     {
+        public static string EncodeECI(string input, int version, int correctionLevel)
+        {
+            string encodedLine = string.Empty;
+            string encodedData = string.Empty;
+            string ECIAssignmentNumber = input.Substring(0, 7).Remove(0, 1);
+            input = input.Remove(0, 7);
+            var ECIAssignmentNumberBinary = Convert.ToString(int.Parse(ECIAssignmentNumber), 2).PadLeft(8, '0');
+            //byte[] bytes = System.Text.Encoding.GetEncoding(Dicts.ECI(ECIAssignmentNumber)).GetBytes(input);
+            encodedLine = encodedLine.Insert(0, ECIAssignmentNumberBinary);
+            encodedLine = encodedLine.Insert(0, "0111 ");
+            //encodedLine += EncodeByte(input, version, correctionLevel);
+
+            byte[] bytes = System.Text.Encoding.GetEncoding(Dicts.ECI(ECIAssignmentNumber)).GetBytes(input);
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                var tmp = bytes[i];
+                encodedData += $"{Convert.ToString(tmp, 2).PadLeft(8, '0')} ";
+            }
+            Console.WriteLine($"INPUT BITS: {encodedData}");
+
+            switch (version)
+            {
+                case int _ when version <= 9:
+                    encodedData = encodedData.Insert(0, $"{Convert.ToString(bytes.Length, 2).PadLeft(8, '0')} ");
+                    break;
+                case int _ when version <= 40:
+                    encodedData = encodedData.Insert(0, $"{Convert.ToString(bytes.Length, 2).PadLeft(16, '0')} ");
+                    break;
+            }
+
+            encodedData = encodedData.Insert(0, "0100 ");
+            encodedLine += $" {encodedData}";
+            encodedLine = encodedLine.TrimEnd();
+            encodedLine = AddEndOfLine(encodedLine, version, correctionLevel);
+            encodedLine = DivideLine(encodedLine);
+            encodedLine = AddCodewords(encodedLine, version, correctionLevel);
+            Console.WriteLine($"+ Codewords {encodedLine}");
+
+            encodedLine = DivideBlocks(encodedLine, version, correctionLevel);
+            encodedLine = CreateCorrectionByte(encodedLine, version, correctionLevel);
+
+            encodedLine = ShuffleCodewords(encodedLine);
+            return encodedLine;
+        }
+
         public static string EncodeNumeric(string input, int version, int correctionLevel)
         {
 

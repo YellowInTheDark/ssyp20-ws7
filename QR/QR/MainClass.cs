@@ -4,17 +4,19 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+
+
 namespace QR
 {
     public class MainClass
     {
         public static void Main()
         {
+            int correctionLevel = 0;
             Console.WriteLine("Write string to encode");
             string input = Console.ReadLine();
             Console.WriteLine("Add logo? (y/N): ");
             bool withLogo = false;
-            int correctionLevel = 0;
             if (Console.ReadLine().ToLower() == "y")
             {
                 withLogo = true;
@@ -29,34 +31,41 @@ namespace QR
                 }
             }
             //input = "ሐ`"; // СТРОКА ДЛЯ ТЕСТА
+            string encodedLine = string.Empty;
             byte[] bytes = UTF8Encoding.UTF8.GetBytes(input);
             foreach (var item in bytes)
             {
                 Console.Write($"{item} ");
             }
             int version = Encoding.GetVersion(bytes, correctionLevel);
-
-            string encodedLine = string.Empty;
-
-            if (Encoding.IsNumeric(bytes))
+            Console.WriteLine("Enable ECI? (y/N): ");
+            if (Console.ReadLine().ToLower() == "y")
             {
-                encodedLine = Encoding.EncodeNumeric(input, version, correctionLevel);
-                Console.WriteLine(encodedLine);
-            }
-            else if (Encoding.IsAlphanumeric(bytes))
-            {
-                encodedLine = Encoding.EncodeAlphaNumeric(input, version, correctionLevel);
-                Console.WriteLine(encodedLine);
-            }
-            else if (Encoding.IsKanji(bytes))
-            {
-                encodedLine = Encoding.EncodeKanji(input, version, correctionLevel);
+                encodedLine = Encoding.EncodeECI(input, version, correctionLevel);
                 Console.WriteLine(encodedLine);
             }
             else
             {
-                encodedLine = Encoding.EncodeByte(input, version, correctionLevel);
-                Console.WriteLine(encodedLine);
+                if (Encoding.IsNumeric(bytes))
+                {
+                    encodedLine = Encoding.EncodeNumeric(input, version, correctionLevel);
+                    Console.WriteLine(encodedLine);
+                }
+                else if (Encoding.IsAlphanumeric(bytes))
+                {
+                    encodedLine = Encoding.EncodeAlphaNumeric(input, version, correctionLevel);
+                    Console.WriteLine(encodedLine);
+                }
+                else if (Encoding.IsKanji(bytes))
+                {
+                    encodedLine = Encoding.EncodeKanji(input, version, correctionLevel);
+                    Console.WriteLine(encodedLine);
+                }
+                else
+                {
+                    encodedLine = Encoding.EncodeByte(input, version, correctionLevel);
+                    Console.WriteLine(encodedLine);
+                }
             }
             int[,] matrix = Matrix.CreateMatrix(encodedLine, version, correctionLevel);
 

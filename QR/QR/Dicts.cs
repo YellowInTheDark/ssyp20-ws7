@@ -99,6 +99,23 @@ namespace QR
 
         }
 
+        public static string ECI(string keyValue)
+        {
+            Dictionary<string, string> AD = new Dictionary<string, string>
+            {
+
+                {"000003", "ISO-8859-1" },
+                {"000004", "ISO-8859-2" },
+                {"000005", "ISO-8859-3" },
+                {"000006", "ISO-8859-4" },
+                {"000007", "ISO-8859-5" },
+                {"000008", "ISO-8859-6" },
+                {"000009", "28597" }, // не работает эта кодировка -_-
+                {"000026", "utf-8" }
+            };
+            return AD[keyValue];
+        }
+
     }
 
 }
