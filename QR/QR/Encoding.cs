@@ -14,10 +14,8 @@ namespace QR
             string ECIAssignmentNumber = input.Substring(0, 7).Remove(0, 1);
             input = input.Remove(0, 7);
             var ECIAssignmentNumberBinary = Convert.ToString(int.Parse(ECIAssignmentNumber), 2).PadLeft(8, '0');
-            //byte[] bytes = System.Text.Encoding.GetEncoding(Dicts.ECI(ECIAssignmentNumber)).GetBytes(input);
             encodedLine = encodedLine.Insert(0, ECIAssignmentNumberBinary);
             encodedLine = encodedLine.Insert(0, "0111 ");
-            //encodedLine += EncodeByte(input, version, correctionLevel);
 
             byte[] bytes = System.Text.Encoding.GetEncoding(Dicts.ECI(ECIAssignmentNumber)).GetBytes(input);
             for (int i = 0; i < bytes.Length; i++)

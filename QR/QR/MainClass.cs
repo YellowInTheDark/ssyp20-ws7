@@ -38,14 +38,18 @@ namespace QR
                 Console.Write($"{item} ");
             }
             int version = Encoding.GetVersion(bytes, correctionLevel);
-            Console.WriteLine("Enable ECI? (y/N): ");
-            if (Console.ReadLine().ToLower() == "y")
+            bool ECI = false;
+            if (input.Contains('\\'))
             {
-                encodedLine = Encoding.EncodeECI(input, version, correctionLevel);
-                Console.WriteLine(encodedLine);
+                Console.WriteLine("Enable ECI? (y/N): ");
+                if (Console.ReadLine().ToLower() == "y")
+                {
+                    ECI = true;
+                    encodedLine = Encoding.EncodeECI(input, version, correctionLevel);
+                    Console.WriteLine(encodedLine);
+                }
             }
-            else
-            {
+            if (!ECI) {
                 if (Encoding.IsNumeric(bytes))
                 {
                     encodedLine = Encoding.EncodeNumeric(input, version, correctionLevel);
@@ -66,7 +70,7 @@ namespace QR
                     encodedLine = Encoding.EncodeByte(input, version, correctionLevel);
                     Console.WriteLine(encodedLine);
                 }
-            }
+            } 
             int[,] matrix = Matrix.CreateMatrix(encodedLine, version, correctionLevel);
 
             if (withLogo)
@@ -75,9 +79,6 @@ namespace QR
             }
             else Save.RequestImageSave(matrix);
         }
-
-
-
 
         public int[,] ReadCorrection()
         {
