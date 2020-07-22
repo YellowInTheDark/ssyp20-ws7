@@ -5,16 +5,28 @@ using System.Linq;
 using System.Text;
 
 
-
 namespace QR
 {
     public class MainClass
     {
         public static void Main()
         {
+            Console.InputEncoding = System.Text.Encoding.GetEncoding(1200);
+            Console.OutputEncoding = System.Text.Encoding.GetEncoding(1200);                            
+            System.Text.Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             int correctionLevel = 0;
-            Console.WriteLine("Write string to encode");
-            string input = Console.ReadLine();
+            string input = string.Empty;
+            Console.WriteLine("Do you want to use any payload? (y/N): ");
+            if (Console.ReadLine().ToLower() == "y")
+            {
+                input = ChoosePayload();
+            }
+            else
+            {
+                Console.WriteLine("Write string to encode");
+                input = Console.ReadLine();
+            }
+
             Console.WriteLine("Add logo? (y/N): ");
             bool withLogo = false;
             if (Console.ReadLine().ToLower() == "y")
@@ -31,6 +43,7 @@ namespace QR
                 }
             }
             //input = "ሐ`"; // СТРОКА ДЛЯ ТЕСТА
+            //input = "\\000009ΑΒΓΔ"; //тест2
             string encodedLine = string.Empty;
             byte[] bytes = UTF8Encoding.UTF8.GetBytes(input);
             foreach (var item in bytes)
@@ -78,6 +91,18 @@ namespace QR
                 Save.SaveWithLogo(matrix);
             }
             else Save.RequestImageSave(matrix);
+        }
+
+        public static string ChoosePayload()
+        {
+            string payload = string.Empty;
+            Console.WriteLine("Choose payload number: ");
+            Console.WriteLine("1. Skype\n2. URL\n3. E-Mail\n4. Phone call\n5. SMS\n6. Discord\n");
+            if(int.TryParse(Console.ReadLine(), out int number))
+            {
+                payload = Payload.UsePayload(number);
+            }
+            return payload;
         }
 
         public int[,] ReadCorrection()

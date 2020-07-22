@@ -7,6 +7,7 @@ namespace QR
 {
     class Encoding
     {
+
         public static string EncodeECI(string input, int version, int correctionLevel)
         {
             string encodedLine = string.Empty;

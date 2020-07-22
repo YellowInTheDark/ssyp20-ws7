@@ -115,7 +115,5 @@ namespace QR
             };
             return AD[keyValue];
         }
-
     }
-
 }
