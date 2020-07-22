@@ -97,7 +97,7 @@ namespace QR
         {
             string payload = string.Empty;
             Console.WriteLine("Choose payload number: ");
-            Console.WriteLine("1. Skype\n2. URL\n3. E-Mail\n4. Phone call\n5. SMS\n6. Discord\n");
+            Console.WriteLine("1. Skype\n2. URL\n3. E-Mail\n4. Phone call\n5. SMS\n6. Discord\n7. Wi-Fi");
             if(int.TryParse(Console.ReadLine(), out int number))
             {
                 payload = Payload.UsePayload(number);

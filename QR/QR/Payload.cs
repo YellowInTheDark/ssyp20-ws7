@@ -29,6 +29,9 @@ namespace QR
                 case 6:
                     payload = Discord();
                     break;
+                case 7:
+                    payload = WiFi();
+                    break;
             }
 
             return payload;
@@ -71,6 +74,39 @@ namespace QR
             Console.WriteLine("Write invitation URL");
             string input = Console.ReadLine();
             return (input.StartsWith("https://discord.gg/") ? input : "https://discord.gg/" + input);
+        }
+        public static string WiFi()
+        {
+            Console.WriteLine("Write WiFi name");
+            string SSID = Console.ReadLine();
+            Console.WriteLine("Choose protection: 1. WPA | 2. WPA2 | 3. WEP | 4. -");
+            string protection = string.Empty;
+            string password = string.Empty;
+            bool isHidden = false;
+            switch (int.Parse(Console.ReadLine()))
+            {
+                case 1:
+                    protection = "WPA";
+                    break;
+                case 2:
+                    protection = "WPA2";
+                    break;
+                case 3:
+                    protection = "WEP";
+                    break;
+            };
+            if(protection != "")
+            {
+                Console.WriteLine("Write password");
+                password = Console.ReadLine();
+            }
+            Console.WriteLine("Is SSID hidden? (y/N): ");
+            if (Console.ReadLine().ToLower() == "y")
+            {
+                isHidden = true;
+            }
+
+            return $"WIFI:S:{SSID};T:{protection};P:{password};H:{isHidden};";
         }
     }
 }
