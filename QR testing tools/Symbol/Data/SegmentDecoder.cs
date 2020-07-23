@@ -45,10 +45,32 @@ namespace QRTestingTools.Symbol.Data
             {
                 case SegmentMode.ECI:
                     {
-                        Console.WriteLine("ECI segments are not supported");
-                        result = new Segment();
-                        bitsRead = 0;
-                        return false;
+                        try
+                        {
+                            (int eciDesignator, int bitCount) =
+                            (bitArray[modeIndicatorLength], bitArray[modeIndicatorLength + 1], bitArray[modeIndicatorLength + 2]) switch
+                            {
+                                (0, _, _) => (AssembleBits(bitArray, modeIndicatorLength + 1, 7), 8),
+                                (1, 0, _) => (AssembleBits(bitArray, modeIndicatorLength + 2, 14), 16),
+                                (1, 1, 0) => (AssembleBits(bitArray, modeIndicatorLength + 3, 21), 24),
+                                _         => throw new Exception($"Incorrect ECI designator prefix: {bitArray[modeIndicatorLength]}{bitArray[modeIndicatorLength + 1]}{bitArray[modeIndicatorLength + 2]}")
+                            };
+                            result =
+                            new Segment
+                            {
+                                Mode = mode,
+                                CharacterCount = 0,
+                                Content = new byte[0]
+                            };
+                            bitsRead = modeIndicatorLength + bitCount;
+                            return true;
+                        }
+                        catch
+                        {
+                            result = new Segment();
+                            bitsRead = 0;
+                            return false;
+                        }
                     }
                 case SegmentMode.Numeric:
                 case SegmentMode.Alphanumeric:
@@ -87,24 +109,69 @@ namespace QRTestingTools.Symbol.Data
                     }
                 case SegmentMode.StructuredAppend:
                     {
-                        Console.WriteLine("Structured Append segments are not supported");
-                        result = new Segment();
-                        bitsRead = 0;
-                        return false;
+                        try
+                        {
+                            byte sequenceIndicator = (byte)AssembleBits(bitArray, modeIndicatorLength, 8);
+                            byte parityData = (byte)AssembleBits(bitArray, modeIndicatorLength + 8, 8);
+                            result =
+                            new Segment
+                            {
+                                Mode = mode,
+                                CharacterCount = 0,
+                                Content = new byte[] { sequenceIndicator, parityData }
+                            };
+                            bitsRead = modeIndicatorLength + 16;
+                            return true;
+                        }
+                        catch
+                        {
+                            result = new Segment();
+                            bitsRead = 0;
+                            return false;
+                        }
                     }
                 case SegmentMode.FNC1FirstPosition:
                     {
-                        Console.WriteLine("FNC1 segments are not supported");
-                        result = new Segment();
-                        bitsRead = 0;
-                        return false;
+                        try
+                        {
+                            result =
+                            new Segment
+                            {
+                                Mode = mode,
+                                CharacterCount = 0,
+                                Content = new byte[0]
+                            };
+                            bitsRead = modeIndicatorLength;
+                            return true;
+                        }
+                        catch
+                        {
+                            result = new Segment();
+                            bitsRead = 0;
+                            return false;
+                        }
                     }
                 case SegmentMode.FNC1SecondPosition:
                     {
-                        Console.WriteLine("FNC1 segments are not supported");
-                        result = new Segment();
-                        bitsRead = 0;
-                        return false;
+                        try
+                        {
+                            byte applicationIndicator = (byte)AssembleBits(bitArray, modeIndicatorLength, 8);
+                            result =
+                            new Segment
+                            {
+                                Mode = mode,
+                                CharacterCount = 0,
+                                Content = new byte[] { applicationIndicator }
+                            };
+                            bitsRead = modeIndicatorLength + 8;
+                            return true;
+                        }
+                        catch
+                        {
+                            result = new Segment();
+                            bitsRead = 0;
+                            return false;
+                        }
                     }
                 case SegmentMode.Terminator:
                     {
@@ -120,10 +187,7 @@ namespace QRTestingTools.Symbol.Data
                     }
                 default:
                     {
-                        Console.WriteLine("Unknown segments are not supported");
-                        result = new Segment();
-                        bitsRead = 0;
-                        return false;
+                        throw new Exception($"Unknown segment mode: {mode}");
                     }
             }
         }

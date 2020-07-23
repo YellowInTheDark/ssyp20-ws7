@@ -13,12 +13,15 @@ namespace QRTestingTools
     {
         static void Main(string[] args)
         {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             while (true)
             {
                 try
                 {
-                    Console.InputEncoding = Encoding.UTF8;
-                    Console.OutputEncoding = Encoding.UTF8;
+                    var x = Encoding.GetEncoding("iso-8859-7").GetBytes("ΑΒΓΔ");
+                    Console.InputEncoding = System.Text.Encoding.GetEncoding(1200);
+                    Console.OutputEncoding = System.Text.Encoding.GetEncoding(1200);
+                    Console.WriteLine("ሐ`");
                     Console.WindowWidth = Console.LargestWindowWidth;
                     Console.SetIn(new StreamReader(Console.OpenStandardInput(32768), Console.InputEncoding, false, 32768));
                     Console.WriteLine("Bit string:\n");
@@ -78,6 +81,8 @@ namespace QRTestingTools
                         Console.WriteLine(str);
                 }
             }
+
+            var x = Encoding.GetEncoding("ISO-8859-1").GetBytes("TEST");
         }
 
         /// <summary>
