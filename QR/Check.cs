@@ -27,18 +27,23 @@ namespace QR
 
         public static bool Kanji(byte[] bytes)
         {
-            for (int i = 0; i < bytes.Length; i += 2)
-            {
-                if ((bytes[i] >= 129 && bytes[i] <= 159) && (bytes[i + 1] >= 64 && bytes[i + 1] <= 126) ||
-                    (bytes[i] >= 129 && bytes[i] <= 159) && (bytes[i + 1] >= 128 && bytes[i + 1] <= 252) ||
+            if (bytes.Length % 2 == 0)
+                for (int i = 0; i < bytes.Length; i += 2)
+                {
+                    if (bytes[i] >= 129 && bytes[i] <= 159 && bytes[i + 1] >= 64 && bytes[i + 1] <= 126 ||
+                        bytes[i] >= 129 && bytes[i] <= 159 && bytes[i + 1] >= 128 && bytes[i + 1] <= 252 ||
 
-                    (bytes[i] >= 224 && bytes[i] <= 234) && (bytes[i + 1] >= 64 && bytes[i + 1] <= 126) ||
-                    (bytes[i] >= 224 && bytes[i] <= 234) && (bytes[i + 1] >= 128 && bytes[i + 1] <= 252) ||
+                        bytes[i] >= 224 && bytes[i] <= 234 && bytes[i + 1] >= 64 && bytes[i + 1] <= 126 ||
+                        bytes[i] >= 224 && bytes[i] <= 234 && bytes[i + 1] >= 128 && bytes[i + 1] <= 252 ||
 
-                    (bytes[i] >= 234 && bytes[i] <= 235) && (bytes[i + 1] >= 64 && bytes[i + 1] <= 126) ||
-                    (bytes[i] >= 224 && bytes[i] <= 234) && (bytes[i + 1] >= 128 && bytes[i + 1] <= 191))
-                    return false;
-            }
+                        bytes[i] >= 234 && bytes[i] <= 235 && bytes[i + 1] >= 64 && bytes[i + 1] <= 126 ||
+                        bytes[i] >= 224 && bytes[i] <= 234 && bytes[i + 1] >= 128 && bytes[i + 1] <= 191)
+                    { }
+                    else
+                        return false;
+                }
+            else return false;
+
             return true;
         }
 

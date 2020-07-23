@@ -1,10 +1,11 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-
+using System.Threading;
 
 namespace QR
 {
@@ -13,11 +14,6 @@ namespace QR
 
         static void Main()
         {
-            int c = (byte)((255 % 255 + 1 % 255) % 255);
-            byte b = (byte)((255 % 255 + 1 % 255) % 255);
-            Console.WriteLine(11^17);
-            Console.WriteLine(b);
-
             string input = Console.ReadLine();
             byte[] bytes = UTF8Encoding.UTF8.GetBytes(input);
             
@@ -26,34 +22,37 @@ namespace QR
 
             string data;
             string encodingMethod;
-
+            string updateData;
 
             if (Check.Numeric(bytes))
             {
                 data = Encoders.NumericCoder(input);
-                Console.WriteLine($"NumericEncoder: {data}");
+                //Console.WriteLine($"NumericEncoder: {data}");
                 encodingMethod = "0001";
+                updateData = UpdateData(data, input.Length, encodingMethod, correctionLevel);
             }
             else if (Check.Alphanumeric(bytes))
             {
                 data = Encoders.AlphanumericCoder(input);
-                Console.WriteLine($"AlphanumericEncoder: {data}");
+                //Console.WriteLine($"AlphanumericEncoder: {data}");
                 encodingMethod = "0010";
+                updateData = UpdateData(data, input.Length, encodingMethod, correctionLevel);
             }
             //else if (Check.Kanji(bytes))
             //{
-            //    Console.WriteLine("3");
-            //    string encodingMethod = "1000";
+            //    data = Encoders.KanjiCoder(input, bytes);
+            //    Console.WriteLine($"KanjiEncoder: {data}");
+            //    encodingMethod = "1000";
             //}
             else 
             {
                 data = Encoders.ByteCoder(bytes);
-                Console.WriteLine($"ByteEncoder: {data}");
+                //Console.WriteLine($"ByteEncoder: {data}");
                 encodingMethod = "0100";
+                updateData = UpdateData(data, (data.Length)/8, encodingMethod, correctionLevel);
             }
-
-            string updateData = UpdateData(data, input.Length, encodingMethod, correctionLevel);
-            Console.WriteLine($"Result: {updateData}");
+            
+            //Console.WriteLine($"Result: {updateData}");
 
         }
       
@@ -61,6 +60,8 @@ namespace QR
         static string UpdateData(string data, int lengthString, string encodingMethod, int correctionLevel)
         {
             var lengthData = data.Length;
+            
+
             string updateData = "";
             string[] maxValues = File.ReadLines("versions.txt").ElementAt(correctionLevel-1).Split();
 
@@ -74,13 +75,15 @@ namespace QR
                         continue;
                     else
                     {
-                        Console.WriteLine($"String length in binary system: {LODA}");
-                        Console.WriteLine($"Max value for current Method and version {i+1}: {maxValues[i]}");
+                        //Console.WriteLine($"String length in binary system: {LODA}");
+                        //Console.WriteLine($"Max value for current Method and version {i+1}: {maxValues[i]}");
                         updateData = encodingMethod + LODA + data;
+                        //Console.WriteLine(updateData);
                         updateData = filling(updateData, int.Parse(maxValues[i]));
+                        //Console.WriteLine(updateData);
                         updateData = DivisionIntoBlocks(updateData, int.Parse(maxValues[i]), i, correctionLevel);
-                        string matrix = GenerateMatrix(i+1, correctionLevel);
                         updateData = LastAlgorithm(updateData, correctionLevel,i);
+                        string matrix = GenerateMatrix(i + 1, correctionLevel, updateData);
                         break;
                     }
 
@@ -111,6 +114,8 @@ namespace QR
                         return buff.PadLeft(9, '0');
                     case "0100":
                         return buff.PadLeft(8, '0');
+                    case "1000":
+                        return buff.PadLeft(8, '0');
                 }
             }
             if (i <= 26)
@@ -123,6 +128,8 @@ namespace QR
                         return buff.PadLeft(11, '0');
                     case "0100":
                         return buff.PadLeft(16, '0');
+                    case "1000":
+                        return buff.PadLeft(10, '0');
                 }
             }
             if (i <= 40)
@@ -135,6 +142,8 @@ namespace QR
                         return buff.PadLeft(13, '0');
                     case "0100":
                         return buff.PadLeft(16, '0');
+                    case "1000":
+                        return buff.PadLeft(12, '0');
                 }
             }
             return "Exception";
@@ -143,6 +152,11 @@ namespace QR
 
         static string filling(string data, int targetLength)
         {
+
+            if (data.Length + 4 > targetLength)
+                data = data.PadRight(targetLength, '0');
+            else
+                data = data.Insert(data.Length, "0000");
             while (data.Length % 8 != 0)
             {
                 data = data.Insert(data.Length,"0");
@@ -196,32 +210,32 @@ namespace QR
         }
 
 
-        static string GenerateMatrix(int version, int correctionLevel)
+        static string GenerateMatrix(int version, int correctionLevel, string data)
         {
             string d = "";
             var size = AllDictionaries.SizeDictionary(version-1);
-            int[,] matrix = new int[size, size];
+            int[,] matrix1 = new int[size, size];
             int[,] searchPatterns = {{1,1,1,1,1,1,1}, {1,0,0,0,0,0,1}, {1,0,1,1,1,0,1}, {1,0,1,1,1,0,1}, {1,0,1,1,1,0,1}, {1,0,0,0,0,0,1}, {1,1,1,1,1,1,1}};
             int[,] alignmentPatterns = { { 1, 1, 1, 1, 1 }, { 1, 0, 0, 0, 1 }, { 1, 0, 1, 0, 1 }, { 1, 0, 0, 0, 1 }, { 1, 1, 1, 1, 1 } };
             for (int i = 0; i < 7; i++)
             {
                 for (int j = 0; j < 7; j++)
                 {
-                    matrix[i, j] = searchPatterns[i, j];
+                    matrix1[i, j] = searchPatterns[i, j];
                 }
             }
             for (int i = 0; i < 7; i++)
             {
                 for (int j = 0; j < 7; j++)
                 {
-                    matrix[i+size-7, j] = searchPatterns[i, j];
+                    matrix1[i+size-7, j] = searchPatterns[i, j];
                 }
             }
             for (int i = 0; i < 7; i++)
             {
                 for (int j = 0; j < 7; j++)
                 {
-                    matrix[i, j+size-7] = searchPatterns[i, j];
+                    matrix1[i, j+size-7] = searchPatterns[i, j];
                 }
             }
             if (version == 1)
@@ -234,7 +248,7 @@ namespace QR
                 {
                     for (int j = 0; j < 5; j++)
                     {
-                        matrix[i + alignmentPatternspos - 2, j + alignmentPatternspos - 2] = alignmentPatterns[i, j];
+                        matrix1[i + alignmentPatternspos - 2, j + alignmentPatternspos - 2] = alignmentPatterns[i, j];
                     }
                 }
             }
@@ -256,12 +270,12 @@ namespace QR
                             {
                                 for (int g = 0; g < 5; g++)
                                 {
-                                    if (matrix[k + X - 2, g + Y - 2] == 1)
+                                    if (matrix1[k + X - 2, g + Y - 2] == 1)
                                     {
                                         check = 1;
                                         break;
                                     }    
-                                    matrix[k + X - 2, g + Y - 2] = alignmentPatterns[k, g];
+                                    matrix1[k + X - 2, g + Y - 2] = alignmentPatterns[k, g];
                                 }
                                 if (check == 1)
                                 {
@@ -279,13 +293,13 @@ namespace QR
                     {
                         if (Convert.ToInt32(versionCode[6 * i + j]) == 48)
                         {
-                            matrix[size - 11 + i, j] = 0;
-                            matrix[j, size - 11 + i] = 0;
+                            matrix1[size - 11 + i, j] = 0;
+                            matrix1[j, size - 11 + i] = 0;
                         }
                         else
                         {
-                            matrix[size - 11 + i, j] = 1;
-                            matrix[j, size - 11 + i] = 1;
+                            matrix1[size - 11 + i, j] = 1;
+                            matrix1[j, size - 11 + i] = 1;
                         }
 
                     }
@@ -295,31 +309,223 @@ namespace QR
             for (int i = 7; i < size - 7; i++)
             {
                 if (l % 2 == 0)
-                    matrix[i, 6] = 0;
+                    matrix1[i, 6] = 0;
                 else
-                    matrix[i, 6] = 1;
+                    matrix1[i, 6] = 1;
                 l++;
             }
             for (int i = 8; i < size - 7; i++)
             {
                 if (l % 2 == 0)
-                    matrix[6, i] = 0;
+                    matrix1[6, i] = 0;
                 else
-                    matrix[6, i] = 1;
+                    matrix1[6, i] = 1;
                 l++;
             }
-            for (int i = 0; i < size; i++)
+            matrix1[8, size - 8] = 1;
+
+            int[,] matrixResult = new int[size, size];
+            int h;
+            int gf;
+            for (var maskCount = 0; maskCount <= 7; maskCount++) // data
             {
-                for (int j = 0; j < size; j++)
+
+                h = 0;
+                gf = 1;
+                int[,] matrix = new int[size, size];
+                Array.Copy(matrix1, matrix, size * size);
+
+                for (var p = 0; p < 2; p++)
                 {
-                    if (matrix[j, i] ==0)
-                        Console.Write("  ");
-                    else
-                        Console.Write("██");
+                    for (var i = size - 1; i > 8; i--)
+                    {
+                        if (matrix[size - gf, i] == 1)
+                            i -= 5;
+                        matrix[size - gf, i] = Masks(Convert.ToInt32(new string(data[h], 1)), size - gf, i, maskCount);
+                        h++;
+                        matrix[size - gf - 1, i] = Masks(Convert.ToInt32(new string(data[h], 1)), size - gf - 1, i, maskCount);
+                        h++;
+                    }
+                    gf += 2;
+
+                    for (var i = 9; i < size; i++)
+                    {
+                        if (matrix[size - gf, i] == 1)
+                            i += 5;
+                        matrix[size - gf, i] = Masks(Convert.ToInt32(new string(data[h], 1)), size - gf, i, maskCount);
+                        h++;
+                        matrix[size - gf - 1, i] = Masks(Convert.ToInt32(new string(data[h], 1)), size - gf - 1, i, maskCount);
+                        h++;
+                    }
+                    gf += 2;
                 }
-                
-                Console.WriteLine();
+                for (var j = 0; j < (size - 17) / 4; j++)
+                {
+                    for (var i = size - 1; i >= 0; i--)
+                    {
+
+                        if (i == 6)
+                            i -= 1;
+                        if (version > 6 && i == 5 && gf == 9)
+                            break;
+
+                        if (matrix[size - gf, i] == 1 && matrix[size - gf - 1, i] == 0)
+                        {
+                            matrix[size - gf - 1, i] = Masks(Convert.ToInt32(new string(data[h], 1)), size - gf - 1, i, maskCount);
+                            h++;
+                        }
+                        else
+                        {
+                            if (matrix[size - gf, i] == 1 && matrix[size - gf - 1, i] == 1)
+                                i -= 5;
+                            matrix[size - gf, i] = Masks(Convert.ToInt32(new string(data[h], 1)), size - gf, i, maskCount);
+                            h++;
+                            matrix[size - gf - 1, i] = Masks(Convert.ToInt32(new string(data[h], 1)), size - gf - 1, i, maskCount);
+                            h++;
+                        }
+                    }
+                    gf += 2;
+
+                    for (var i = 0; i < size; i++)
+                    {
+
+                        if (version > 6 && i < 6 && gf == 11)
+                        {
+                            matrix[size - gf - 1, i] = Masks(Convert.ToInt32(new string(data[h], 1)), size - gf - 1, i, maskCount);
+                            h++;
+                            continue;
+                        }
+                        if (i == 6)
+                            i += 1;
+                        if (matrix[size - gf, i] == 1 && matrix[size - gf - 1, i] == 0)
+                        {
+                            matrix[size - gf - 1, i] = Masks(Convert.ToInt32(new string(data[h], 1)), size - gf - 1, i, maskCount);
+                            h++;
+                        }
+                        else
+                        {
+                            if (matrix[size - gf, i] == 1 && matrix[size - gf - 1, i] == 1)
+                                i += 5;
+                            matrix[size - gf, i] = Masks(Convert.ToInt32(new string(data[h], 1)), size - gf, i, maskCount);
+                            h++;
+                            matrix[size - gf - 1, i] = Masks(Convert.ToInt32(new string(data[h], 1)), size - gf - 1, i, maskCount);
+                            h++;
+                        }
+                    }
+                    gf += 2;
+
+                }
+
+                for (var i = size - 9; i > 8; i--)
+                {
+                    if (matrix[size - gf, i] == 1 && matrix[size - gf - 1, i] == 1)
+                        i -= 5;
+                    matrix[size - gf, i] = Masks(Convert.ToInt32(new string(data[h], 1)), size - gf, i, maskCount);
+                    h++;
+                    matrix[size - gf - 1, i] = Masks(Convert.ToInt32(new string(data[h], 1)), size - gf - 1, i, maskCount);
+                    h++;
+                }
+                gf += 3;
+                bool ch = false;
+                for (var p = 0; p < 2; p++)
+                {
+                    if (ch)
+                        break;
+                    for (var i = 9; i < size - 8; i++)
+                    {
+                        if (version > 6 && i >= size - 11)
+                            break;
+                        if (matrix[size - gf, i] == 1 && matrix[size - gf - 1, i] == 1)
+                            i += 5;
+                        matrix[size - gf, i] = Masks(Convert.ToInt32(new string(data[h], 1)), size - gf, i, maskCount);
+                        if (h == data.Length - 1)
+                        {
+                            ch = true;
+                            break;
+                        }
+                        h++;
+                        matrix[size - gf - 1, i] = Masks(Convert.ToInt32(new string(data[h], 1)), size - gf - 1, i, maskCount);
+                        if (h == data.Length - 1)
+                        {
+                            ch = true;
+                            break;
+                        }
+                        h++;
+
+                    }
+                    gf += 2;
+                    if (ch)
+                        break;
+                    for (var i = size - 9; i > 8; i--)
+                    {
+                        if (version > 6 && i >= size - 11)
+                            continue;
+
+                        matrix[size - gf, i] = Masks(Convert.ToInt32(new string(data[h], 1)), size - gf, i, maskCount);
+                        if (h == data.Length - 1)
+                        {
+                            ch = true;
+                            break;
+                        }
+                        h++;
+                        matrix[size - gf - 1, i] = Masks(Convert.ToInt32(new string(data[h], 1)), size - gf - 1, i, maskCount);
+                        if (h == data.Length - 1)
+                        {
+                            ch = true;
+                            break;
+                        }
+                        h++;
+
+                    }
+                    gf += 2;
+
+                }
+
+                matrix = CodeMask(matrix, maskCount, correctionLevel);
+                if (Points(matrixResult) > Points(matrix))
+                {
+                    for (int i = 0; i < size; i++)
+                    {
+                        for (int j = 0; j < size; j++)
+                        {
+                            matrixResult[i, j] = matrix[i, j];
+                        }
+                    }
+                }
+                ////Points(matrix);
             }
+
+                for (int i = 0; i < 4; i++)
+                {
+                    for (int j = 0; j < size + 8; j++)
+                    {
+                        Console.Write("██");
+                    }
+                    Console.WriteLine();
+                }
+                for (int i = 0; i < size; i++)
+                {
+                    Console.Write("████████");
+                    for (int j = 0; j < size; j++)
+                    {
+                        if (matrixResult[j, i] == 0)
+                            Console.Write("██");
+                        else
+                            Console.Write("  ");
+                    }
+                    Console.Write("████████");
+                    Console.WriteLine();
+                }
+                for (int i = 0; i < 4; i++)
+                {
+                    for (int j = 0; j < size + 8; j++)
+                    {
+                        Console.Write("██");
+                    }
+                    Console.WriteLine();
+                }
+            
+            
             //matrix = matrix.
             return d;
 
@@ -334,9 +540,15 @@ namespace QR
             var NumberOfBlocks = int.Parse(CountOfBlocks[version]);
             string[] CountOfCorrectionBytes = File.ReadLines("NumberOfCorrectionBytersPerBlock.txt").ElementAt(correctionLevel - 1).Split();
             var NumberOfCorrectionBytes = int.Parse(CountOfCorrectionBytes[version]);
-            string[] ArrayCorrectionBytes = new string[NumberOfBlocks* NumberOfCorrectionBytes];
+            string[,] ArrayCorrectionBytes = new string[NumberOfBlocks, NumberOfCorrectionBytes];
+            string[,] info;
+            if (NumberOfBlocks == 1)
+                info = new string[NumberOfBlocks, data.Length/8];
+            else
+                info = new string[NumberOfBlocks, (data.IndexOf(' ') + 8) / 8];
 
-            var nb = 1;
+            
+            var nb = 0;
             for (var i = 0; i < NumberOfBlocks; i++)
             {
                 string block;
@@ -376,8 +588,12 @@ namespace QR
 
                 for (int h = 0; h < bytes.Length; h++)
                 {
-                   // Console.WriteLine(BArray[0]);
-                    var firstItem = int.Parse(File.ReadLines("ReverseTable.txt").ElementAt(BArray[0]));
+                    int firstItem;
+                    if (BArray[0] == 255)
+                        firstItem = int.Parse(File.ReadLines("ReverseTable.txt").ElementAt(1));
+                    else
+                        firstItem = int.Parse(File.ReadLines("ReverseTable.txt").ElementAt(BArray[0]));
+
 
                     for (int b = 0; b < g-1; b++)
 
@@ -385,14 +601,11 @@ namespace QR
                         BArray[b] = BArray[b + 1];
                     }
                     BArray[g - 1] = 0;
-                   // foreach (var item in BArray)
-                    //    Console.Write(item + " ");
-                   // Console.WriteLine(firstItem);
-
-
-
                     if (firstItem == -1)
                         continue;
+                    // foreach (var item in BArray)
+                    //    Console.Write(item + " ");
+                    // Console.WriteLine(firstIte
                     var B = 0;
                     for (int b = 0; b < NumberOfCorrectionBytes; b++)
                     {
@@ -416,29 +629,265 @@ namespace QR
                     }
                     
                 }
-                string y;
-                
-                for (var item = 1; item<= NumberOfCorrectionBytes; item++)
+                for (var item = 0; item< NumberOfCorrectionBytes; item++)
                 {
-                    var f  = Convert.ToString(BArray[item-1], 2);
+                    var f  = Convert.ToString(BArray[item], 2);
                     f = f.PadLeft(8, '0');
 
-                    ArrayCorrectionBytes[item*nb-1] = f;
+                    ArrayCorrectionBytes[nb, item] = f;
                 }
-                
+                for (var item = 0; item < NumberOfCorrectionBytes; item++)
+                    //Console.WriteLine(ArrayCorrectionBytes[nb, item]);
                 data2 = data2.Remove(0, data2.IndexOf(' ')+1);
                 nb++;
             }
-            foreach (var item in ArrayCorrectionBytes)
-                Console.Write(item + " ");
-            while (data.Length > 0)
+            data2 = data;
+            data = data.Insert(data.Length, " ");
+            for (var i = 0; i < NumberOfBlocks; i++)
             {
-                data2 = 
-            }
-             
+                
+                if (data[0] == ' ')
+                    data = data.Remove(0, 1);
+                var t = data.IndexOf(' ');
+                for (var j = 0; j <  t / 8; j++)
+                {
+                    if (data[0] == ' ')
+                    {
+                        data = data.Remove(0,1);
+                        break;
+                    }
+                    info[i, j] = data.Remove(8, data.Length - 8);
+                    data = data.Remove(0, 8);
+                    //Console.WriteLine();
+                    //Console.Write(info[i, j] + " ");
 
-            return data;
+                }
+                //Console.WriteLine();
+
+            }
+            var data3 = "";
+            //Console.WriteLine();
+            for (var i = 0; i < info.GetLength(1); i++)
+            {
+                for (var j = 0; j < info.GetLength(0); j++)
+                {
+                    if (info[j, i] == null)
+                        continue;
+                    data3 += info[j, i]; 
+                }
+            }
+            for (var i = 0; i < ArrayCorrectionBytes.GetLength(1); i++)
+            {
+                for (var j = 0; j < ArrayCorrectionBytes.GetLength(0); j++)
+                {
+                    
+                    data3 += ArrayCorrectionBytes[j, i];
+                }
+            }
+
+            return data3;
         }
 
+
+        static int Masks(int value, int X, int Y, int maskCount)
+        {
+            int g;
+            if (value == 1)
+                g = 0;
+            else
+                g = 1;
+            switch (maskCount)
+            {
+                case 0:
+                    if ((X + Y) % 2 == 0)
+                        return g;
+                    return value;
+                case 1:
+                    if (Y % 2 == 0)
+                        return g;
+                    return value;
+                case 2:
+                    if (X % 3 == 0)
+                        return g;
+                    return value;
+                case 3:
+                    if ((X + Y) % 3 == 0)
+                        return g;
+                    return value;
+                case 4:
+                    if ((X / 3 + Y / 2) % 2 == 0)
+                        return g;
+                    return value;
+                case 5:
+                    if ((X * Y) % 2 + (X * Y) % 3 == 0)
+                        return g;
+                    return value;
+                case 6:
+                    if (((X * Y) % 2 + (X * Y) % 3) % 2 == 0)
+                        return g;
+                    return value;
+                case 7:
+                    if (((X * Y) % 3 + (X + Y) % 2) % 2 == 0)
+                        return g;
+                    return value;
+                case 8:
+                    return value;
+
+            }
+            return 0;
+
+        }
+
+
+        static int Points(int[,] matrix)
+        {
+            var points = 0;
+            var B = 0;
+            var W = 0;
+            var B1 = 0;
+            var W1 = 0;
+
+            // first rule
+
+            for (var i = 0; i < matrix.GetLength(0); i++)
+            {
+                for (var j = 0; j < matrix.GetLength(0); j++)
+                {
+                    if (matrix[j, i] == 0)
+                    {
+                        W++;
+                        if (B >= 5)
+                            points += B - 2;
+                        if (W >= 5 && j == matrix.GetLength(0) - 1)
+                            points += W - 2;
+                        B = 0;
+                    }
+                    else
+                    {
+                        B++;
+                        if (W >= 5)
+                            points += W - 2;
+                        if (B >= 5 && j == matrix.GetLength(0) - 1)
+                            points += B - 2;
+                        W = 0;
+                    }
+                    if (matrix[i, j] == 0)
+                    {
+                        W1++;
+                        if (B1 >= 5)
+                            points += B1 - 2;
+                        if (W1 >= 5 && j == matrix.GetLength(0) - 1)
+                            points += W1 - 2;
+                        B1 = 0;
+                    }
+                    else
+                    {
+                        B1++;
+                        if (W1 >= 5)
+                            points += W1 - 2;
+                        if (B1 >= 5 && j == matrix.GetLength(0) - 1)
+                            points += B1 - 2;
+                        W1 = 0;
+                    }
+
+                }
+                B = 0;
+                W = 0;
+                B1 = 0;
+                W1 = 0;
+            }
+            //Console.WriteLine(points);
+            
+            // second rule
+
+            for (var i = 0; i < matrix.GetLength(0)-1; i++)
+            {
+                for (var j = 0; j < matrix.GetLength(0)-1; j++)
+                {
+                    if (matrix[j, i] == matrix[j + 1, i] && matrix[j, i + 1] == matrix[j + 1, i + 1] && matrix[j, i] == matrix[j, i + 1])
+                        points += 3;
+                }
+            }
+
+            // third rule
+
+            //Console.WriteLine(points);
+            string modules1 = "000010111010000";
+            string modules2 = "00001011101";
+            string modules3 = "10111010000";
+            int[] sd = { 1, 0, 1 };
+            int count = 0;
+            for (var i = 0; i < matrix.GetLength(0); i++)
+            {
+                string lineArray = "";
+                string columnArray = "";
+                for (var j = 0; j < matrix.GetLength(0); j++)
+                {
+                    lineArray += matrix[j, i];
+                    columnArray += matrix[i, j];
+                }
+                count = (lineArray.Length - lineArray.Replace(modules1, "").Length) / modules1.Length;
+                count += (lineArray.Length - lineArray.Replace(modules2, "").Length) / modules2.Length - count + (lineArray.Length - lineArray.Replace(modules3, "").Length) / modules3.Length - count;
+                points += count * 40;
+                
+                count = (columnArray.Length - columnArray.Replace(modules1, "").Length) / modules1.Length;
+                count += (columnArray.Length - columnArray.Replace(modules2, "").Length) / modules2.Length - count + (columnArray.Length - columnArray.Replace(modules3, "").Length) / modules3.Length - count;
+                points += count * 40;
+            }
+            //Console.WriteLine(points);
+
+            // fourth rule
+
+            B = 0;
+            for (var i = 0; i < matrix.GetLength(0); i++)
+            {
+                for (var j = 0; j < matrix.GetLength(0); j++)
+                {
+                    if (matrix[j,i] == 1)
+                        B++;
+                }
+            }
+            int h = (int)Math.Abs(Math.Truncate(((double)B / (double)matrix.Length)*100 - 50));
+           
+            points += h * 2;
+            //Console.WriteLine(points);
+            return points;
+        }
+
+
+        static int[,] CodeMask(int[,] matrix, int maskVersion, int correctionVersion)
+        { 
+        string CodeMask = File.ReadLines("MaskCode.txt").ElementAt((correctionVersion-1)*8 + maskVersion);
+            var h = 0;
+            for (var i = 0; i < 9; i++)
+            {
+                if (matrix[i, 8] == 1)
+                    i++;
+                matrix[i, 8] = Convert.ToInt32(new string(CodeMask[h], 1));
+                h++;
+            }
+            //h = 8;
+            for (var i = 7; i >= 0; i--)
+            {
+                if (matrix[8, i] == 1)
+                    i--;
+                matrix[8, i] = Convert.ToInt32(new string(CodeMask[h], 1));
+                h++;
+            }
+            h = 0;
+            var length = matrix.GetLength(1);
+            for (var i = length - 1; i > length - 8; i--)
+            {
+                matrix[8, i] = Convert.ToInt32(new string(CodeMask[h], 1));
+                h++;
+            }
+            h = 7;
+            for (var i = length - 8; i < length; i++)
+            {
+                matrix[i, 8] = Convert.ToInt32(new string(CodeMask[h], 1));
+                h++;
+            }
+            return matrix;
+        }
     }
 }

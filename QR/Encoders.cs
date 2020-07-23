@@ -58,8 +58,35 @@ namespace QR
 
         }
 
+        public static string KanjiCoder(string input, byte[] bytes)
+        {
+            string encodedLine = string.Empty;
+            for (int i = 0; i < bytes.Length; i += 2)
+            {
+                ushort group = BitConverter.ToUInt16(new byte[2] { (byte)bytes[i], (byte)bytes[i + 1] }, 0);
 
-        public static string ByteCoder(byte[] bytes)
+                if (group >= 33088 || group <= 40956)
+                {
+                    group -= 0x8140;
+                    byte HighByte = (byte)(group >> 8);
+                    ushort result = (ushort)(HighByte * 0xC0);
+                    byte LowByte = (byte)(group & 0xFF);
+                    result += LowByte;
+                    encodedLine += $"{Convert.ToString(result, 2).PadLeft(13, '0')} ";
+                }
+                else if (group >= 57408 || group <= 60351)
+                {
+                    group -= 0xC140;
+                    byte HighByte = (byte)(group >> 8);
+                    ushort result = (ushort)(HighByte * 0xC0);
+                    byte LowByte = (byte)(group & 0xFF);
+                    result += LowByte;
+                    encodedLine += $"{Convert.ToString(result, 2).PadLeft(13, '0')} ";
+                }
+            }
+            return encodedLine;
+        }
+            public static string ByteCoder(byte[] bytes)
         {
             string streamBits = " ";
             foreach (var item in bytes)
