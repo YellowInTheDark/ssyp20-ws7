@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
+
 namespace QR
 {
     class Program
@@ -14,6 +15,7 @@ namespace QR
 
         static void Main()
         {
+            
             string input = Console.ReadLine();
             byte[] bytes = UTF8Encoding.UTF8.GetBytes(input);
             
@@ -52,7 +54,7 @@ namespace QR
                 updateData = UpdateData(data, (data.Length)/8, encodingMethod, correctionLevel);
             }
             
-            //Console.WriteLine($"Result: {updateData}");
+            ////Console.WriteLine($"Result: {updateData}");
 
         }
       
@@ -82,7 +84,9 @@ namespace QR
                         updateData = filling(updateData, int.Parse(maxValues[i]));
                         //Console.WriteLine(updateData);
                         updateData = DivisionIntoBlocks(updateData, int.Parse(maxValues[i]), i, correctionLevel);
+                        //Console.WriteLine(updateData);
                         updateData = LastAlgorithm(updateData, correctionLevel,i);
+                        //Console.WriteLine(updateData);
                         string matrix = GenerateMatrix(i + 1, correctionLevel, updateData);
                         break;
                     }
@@ -154,7 +158,10 @@ namespace QR
         {
 
             if (data.Length + 4 > targetLength)
+            {
                 data = data.PadRight(targetLength, '0');
+                return data;
+            }
             else
                 data = data.Insert(data.Length, "0000");
             while (data.Length % 8 != 0)
@@ -198,13 +205,10 @@ namespace QR
            for (var k = 0; k < blocks- maxBytes % blocks; k++)
             {
                 data = data.Insert((blocksValue[k]*8*(k+1)+k), " ");
-
             }
-            var gh = 1;
             for (var k = data.Length - 8 * blocksValue[blocks - 1]; k > data.Length - (maxBytes % blocks*8* blocksValue[blocks - 1]); k-= 8 * blocksValue[blocks - 1])
             {
                 data = data.Insert(k, " ");
-
             }
             return data;
         }
@@ -636,8 +640,8 @@ namespace QR
 
                     ArrayCorrectionBytes[nb, item] = f;
                 }
-                for (var item = 0; item < NumberOfCorrectionBytes; item++)
-                    //Console.WriteLine(ArrayCorrectionBytes[nb, item]);
+                //for (var item = 0; item < NumberOfCorrectionBytes; item++)
+                //    Console.WriteLine(ArrayCorrectionBytes[nb, item]);
                 data2 = data2.Remove(0, data2.IndexOf(' ')+1);
                 nb++;
             }
@@ -676,6 +680,7 @@ namespace QR
                     data3 += info[j, i]; 
                 }
             }
+            
             for (var i = 0; i < ArrayCorrectionBytes.GetLength(1); i++)
             {
                 for (var j = 0; j < ArrayCorrectionBytes.GetLength(0); j++)
@@ -889,5 +894,7 @@ namespace QR
             }
             return matrix;
         }
+
+        
     }
 }
