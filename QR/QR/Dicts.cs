@@ -84,7 +84,7 @@ namespace QR
 
         public static int Mask(int keyValue, int x, int y)
         {
-            Dictionary<int, int> PD = new Dictionary<int, int>
+            Dictionary<int, int> MD = new Dictionary<int, int>
             {
                 { 0, (x+y) % 2},
                 { 1, (y % 2) },
@@ -95,13 +95,13 @@ namespace QR
                 { 6, ((x*y) % 2 + (x*y) % 3) % 2 },
                 { 7, ((x*y) % 3 + (x+y) % 2) % 2 },
             };
-            return PD[keyValue];
+            return MD[keyValue];
 
         }
 
         public static string ECI(string keyValue)
         {
-            Dictionary<string, string> AD = new Dictionary<string, string>
+            Dictionary<string, string> ECID = new Dictionary<string, string>
             {
 
                 {"000003", "ISO-8859-1" },
@@ -113,7 +113,7 @@ namespace QR
                 {"000009", "ISO-8859-7" }, // не работает эта кодировка -_-
                 {"000026", "utf-8" }
             };
-            return AD[keyValue];
+            return ECID[keyValue];
         }
     }
 }
